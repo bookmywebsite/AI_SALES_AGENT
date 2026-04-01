@@ -1,0 +1,546 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Plan {
+  FREE
+  STARTER
+  GROWTH
+  PRO
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  ENGAGED
+  QUALIFIED
+  MEETING_SET
+  WON
+  LOST
+}
+
+enum LeadTier {
+  HOT
+  WARM
+  COLD
+}
+
+enum ConversationChannel {
+  CHAT
+  EMAIL
+  VOICE
+}
+
+enum ConversationStatus {
+  ACTIVE
+  WAITING
+  CLOSED
+  TRANSFERRED
+}
+
+enum EmailStatus {
+  DRAFT
+  QUEUED
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  REPLIED
+  BOUNCED
+}
+
+enum MeetingStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum CallStatus {
+  QUEUED
+  RINGING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  BUSY
+  NO_ANSWER
+  CANCELLED
+}
+
+enum CallOutcome {
+  INTERESTED
+  NOT_INTERESTED
+  CALLBACK_REQUESTED
+  VOICEMAIL
+  WRONG_NUMBER
+  DO_NOT_CALL
+  MEETING_BOOKED
+  TRANSFERRED
+  NO_OUTCOME
+}
+
+enum CallDirection {
+  INBOUND
+  OUTBOUND
+}
+
+model User {
+  id             String        @id @default(cuid())
+  clerkId        String        @unique
+  email          String        @unique
+  firstName      String?
+  lastName       String?
+  imageUrl       String?
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  role           String        @default("member")
+  timezone       String        @default("Asia/Kolkata")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  teamMember     TeamMember?
+
+  @@index([organizationId])
+}
+
+model Organization {
+  id                   String          @id @default(cuid())
+  name                 String
+  slug                 String          @unique
+  logoUrl              String?
+  plan                 Plan            @default(FREE)
+  stripeCustomerId     String?         @unique
+  stripeSubscriptionId String?         @unique
+  conversationLimit    Int             @default(100)
+  conversationsUsed    Int             @default(0)
+  emailLimit           Int             @default(500)
+  emailsUsed           Int             @default(0)
+  users                User[]
+  agents               Agent[]
+  leads                Lead[]
+  conversations        Conversation[]
+  emailSequences       EmailSequence[]
+  meetings             Meeting[]
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  conversationCount    Int             @default(0)
+  callStartHour        Int             @default(9)
+  callEndHour          Int             @default(21)
+  callQueues           CallQueue[]
+  assignmentMode       String          @default("ROUND_ROBIN")
+  teamMembers          TeamMember[]
+  assignmentRules      AssignmentRule[]
+}
+
+model Agent {
+  id                 String          @id @default(cuid())
+  organizationId     String
+  organization       Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name               String          @default("Alex")
+  role               String          @default("Sales Representative")
+  avatarUrl          String?
+  voiceId            String?         @default("alloy")
+  enableChat         Boolean         @default(true)
+  enableEmail        Boolean         @default(true)
+  enableVoice        Boolean         @default(false)
+  personality        String          @default("friendly")
+  tone               String          @default("conversational")
+  companyName        String?
+  companyDescription String?         @db.Text
+  productDescription String?         @db.Text
+  valueProposition   String?         @db.Text
+  pricingInfo        String?         @db.Text
+  calendlyUrl        String?
+  meetingDuration    Int             @default(30)
+  widgetColor        String          @default("#4F46E5")
+  widgetPosition     String          @default("bottom-right")
+  welcomeMessage     String          @default("Hi! 👋 How can I help you today?")
+  totalConversations Int             @default(0)
+  meetingsBooked     Int             @default(0)
+  leadsQualified     Int             @default(0)
+  conversations      Conversation[]
+  emailSequences     EmailSequence[]
+  isActive           Boolean         @default(true)
+  isDefault          Boolean         @default(false)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  systemPrompt       String?
+  callQueues         CallQueue[]
+
+  @@index([organizationId])
+}
+
+model Lead {
+  id                   String               @id @default(cuid())
+  organizationId       String
+  organization         Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email                String
+  phone                String?
+  firstName            String?
+  lastName             String?
+  fullName             String?
+  company              String?
+  jobTitle             String?
+  linkedinUrl          String?
+  website              String?
+  companySize          String?
+  industry             String?
+  city                 String?
+  country              String?
+  score                Int?
+  tier                 LeadTier?
+  status               LeadStatus           @default(NEW)
+  budgetScore          Int?
+  budgetNotes          String?
+  authorityScore       Int?
+  authorityNotes       String?
+  needScore            Int?
+  needNotes            String?
+  timelineScore        Int?
+  timelineNotes        String?
+  painPoints           String[]             @default([])
+  interests            String[]             @default([])
+  objections           String[]             @default([])
+  buyingSignals        String[]             @default([])
+  qualificationSummary String?              @db.Text
+  source               String?
+  utmSource            String?
+  utmMedium            String?
+  utmCampaign          String?
+  lastContactedAt      DateTime?
+  lastRespondedAt      DateTime?
+  emailsSent           Int                  @default(0)
+  emailsOpened         Int                  @default(0)
+  conversations        Conversation[]
+  emails               Email[]
+  meetings             Meeting[]
+  activities           Activity[]
+  sequenceEnrollments  SequenceEnrollment[]
+  tags                 String[]             @default([])
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  qualificationNotes   String?
+  doNotCall            Boolean              @default(false)
+  preferredLanguage    String               @default("EN")
+  lastCallAt           DateTime?
+  lastCallOutcome      String?
+  totalCalls           Int                  @default(0)
+  callQueues           CallQueue[]
+  callLogs             CallLog[]
+  assignedToId         String?
+  assignedTo           TeamMember? @relation(fields: [assignedToId], references: [id])
+  assignedAt           DateTime?
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+  @@index([status])
+  @@index([tier])
+}
+
+model Conversation {
+  id                    String              @id @default(cuid())
+  organizationId        String
+  organization          Organization        @relation(fields: [organizationId], references: [id])
+  agentId               String
+  agent                 Agent               @relation(fields: [agentId], references: [id])
+  leadId                String?
+  lead                  Lead?               @relation(fields: [leadId], references: [id])
+  channel               ConversationChannel
+  status                ConversationStatus  @default(ACTIVE)
+  sessionId             String?             @unique
+  twilioCallSid         String?             @unique
+  phoneFrom             String?
+  phoneTo               String?
+  callDuration          Int?
+  summary               String?             @db.Text
+  sentiment             String?
+  qualificationComplete Boolean             @default(false)
+  meetingBooked         Boolean             @default(false)
+  isTransferred         Boolean             @default(false)
+  messages              Message[]
+  messageCount          Int                 @default(0)
+  startedAt             DateTime            @default(now())
+  lastMessageAt         DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  endedAt               DateTime?
+
+  @@index([organizationId])
+  @@index([leadId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String
+  content        String       @db.Text
+  senderType     String?
+  audioUrl       String?
+  intent         String?
+  sentiment      String?
+  toolCalls      Json?
+  quickActions   Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+}
+
+model EmailSequence {
+  id             String               @id @default(cuid())
+  organizationId String
+  organization   Organization         @relation(fields: [organizationId], references: [id])
+  agentId        String?
+  agent          Agent?               @relation(fields: [agentId], references: [id])
+  name           String
+  description    String?
+  targetTier     LeadTier?
+  steps          EmailSequenceStep[]
+  enrollments    SequenceEnrollment[]
+  totalEnrolled  Int                  @default(0)
+  totalCompleted Int                  @default(0)
+  totalReplied   Int                  @default(0)
+  isActive       Boolean              @default(true)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([organizationId])
+}
+
+model EmailSequenceStep {
+  id              String        @id @default(cuid())
+  sequenceId      String
+  sequence        EmailSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  stepNumber      Int
+  name            String?
+  delayDays       Int           @default(0)
+  delayHours      Int           @default(0)
+  subjectTemplate String?
+  bodyTemplate    String?       @db.Text
+  useAI           Boolean       @default(true)
+  skipIfReplied   Boolean       @default(true)
+  skipIfMeeting   Boolean       @default(true)
+  totalSent       Int           @default(0)
+  totalOpened     Int           @default(0)
+  totalReplied    Int           @default(0)
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+
+  @@unique([sequenceId, stepNumber])
+}
+
+model SequenceEnrollment {
+  id          String        @id @default(cuid())
+  sequenceId  String
+  sequence    EmailSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  leadId      String
+  lead        Lead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  currentStep Int           @default(1)
+  status      String        @default("active")
+  enrolledAt  DateTime      @default(now())
+  nextStepAt  DateTime?
+  completedAt DateTime?
+
+  @@unique([sequenceId, leadId])
+}
+
+model Email {
+  id             String      @id @default(cuid())
+  leadId         String
+  lead           Lead        @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  direction      String
+  subject        String
+  body           String      @db.Text
+  bodyHtml       String?     @db.Text
+  fromEmail      String
+  fromName       String?
+  toEmail        String
+  toName         String?
+  threadId       String?
+  sequenceId     String?
+  sequenceStep   Int?
+  status         EmailStatus @default(DRAFT)
+  intent         String?
+  sentiment      String?
+  suggestedReply String?     @db.Text
+  sendGridId     String?
+  openCount      Int         @default(0)
+  clickCount     Int         @default(0)
+  scheduledFor   DateTime?
+  sentAt         DateTime?
+  openedAt       DateTime?
+  repliedAt      DateTime?
+  bouncedAt      DateTime?
+  createdAt      DateTime    @default(now())
+
+  @@index([leadId])
+}
+
+model Meeting {
+  id              String        @id @default(cuid())
+  organizationId  String
+  organization    Organization  @relation(fields: [organizationId], references: [id])
+  leadId          String
+  lead            Lead          @relation(fields: [leadId], references: [id])
+  title           String
+  description     String?       @db.Text
+  startTime       DateTime
+  endTime         DateTime
+  duration        Int
+  timezone        String        @default("Asia/Kolkata")
+  meetingType     String
+  meetingUrl      String?
+  bookedBy        String
+  bookedVia       String?
+  status          MeetingStatus @default(SCHEDULED)
+  notes           String?       @db.Text
+  outcome         String?
+  calendlyEventId String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([organizationId])
+  @@index([leadId])
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  type        String
+  title       String
+  description String?
+  actorType   String
+  actorId     String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([leadId])
+}
+
+model DailyMetrics {
+  id                 String   @id @default(cuid())
+  organizationId     String
+  date               DateTime @db.Date
+  chatConversations  Int      @default(0)
+  voiceConversations Int      @default(0)
+  emailsSent         Int      @default(0)
+  leadsGenerated     Int      @default(0)
+  leadsQualified     Int      @default(0)
+  meetingsBooked     Int      @default(0)
+  createdAt          DateTime @default(now())
+
+  @@unique([organizationId, date])
+}
+
+model CallQueue {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  agentId        String
+  agent          Agent        @relation(fields: [agentId], references: [id])
+  leadId         String
+  lead           Lead         @relation(fields: [leadId], references: [id])
+  scheduledFor   DateTime     @default(now())
+  priority       Int          @default(5)
+  language       String       @default("EN")
+  status         CallStatus   @default(QUEUED)
+  attempts       Int          @default(0)
+  maxAttempts    Int          @default(3)
+  callSid        String?
+  lastAttemptAt  DateTime?
+  completedAt    DateTime?
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([scheduledFor])
+}
+
+model CallLog {
+  id          String        @id @default(cuid())
+  leadId      String
+  lead        Lead          @relation(fields: [leadId], references: [id])
+  callSid     String        @unique
+  direction   CallDirection @default(OUTBOUND)
+  status      CallStatus    @default(QUEUED)
+  outcome     CallOutcome   @default(NO_OUTCOME)
+  fromNumber  String
+  toNumber    String
+  language    String        @default("EN")
+  duration    Int?
+  recordingUrl String?
+  transcript  String?       @db.Text
+  startedAt   DateTime      @default(now())
+  answeredAt  DateTime?
+  endedAt     DateTime?
+  createdAt   DateTime      @default(now())
+
+  @@index([leadId])
+  @@index([callSid])
+}
+
+model TeamMember {
+  id              String       @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  userId          String       @unique
+  user            User         @relation(fields: [userId], references: [id])
+  isAvailable     Boolean      @default(true)
+  isOnline        Boolean      @default(false)
+  maxLeadsPerDay  Int          @default(50)
+  currentLeadCount Int         @default(0)
+  skills          String[]     @default([])
+  languages       String[]     @default(["EN"])
+  totalAssigned   Int          @default(0)
+  totalConverted  Int          @default(0)
+  lastAssignedAt  DateTime?
+  assignedLeads   Lead[]
+  assignmentRules AssignmentRule[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([organizationId])
+}
+
+model AssignmentRule {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  priority       Int          @default(0)
+  isActive       Boolean      @default(true)
+  conditions     Json
+  assignToId     String?
+  assignTo       TeamMember?  @relation(fields: [assignToId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+}
+
+model ScheduledJob {
+  id           String    @id @default(cuid())
+  jobType      String
+  targetId     String
+  scheduledFor DateTime
+  timezone     String    @default("Asia/Kolkata")
+  status       String    @default("PENDING")
+  attempts     Int       @default(0)
+  lastError    String?
+  payload      Json
+  processedAt  DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([status, scheduledFor])
+  @@index([jobType, status])
+}
