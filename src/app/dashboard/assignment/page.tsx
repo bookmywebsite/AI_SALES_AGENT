@@ -231,7 +231,7 @@ export default function AssignmentTestPage() {
         <button
           onClick={handleBulkFollowUp}
           disabled={loading}
-          className="flex flex-col items-center gap-2 bg-orange-500 text-white rounded-2xl p-4 hover:bg-orange-600 disabled:opacity-50 transition-colors"
+          className="flex flex-col items-center gap-2 bg-violet-500 text-white rounded-2xl p-4 hover:bg-violet-600 disabled:opacity-50 transition-colors"
         >
           <Calendar className="w-6 h-6" />
           <span className="text-sm font-medium">Schedule Follow-ups</span>
