@@ -41,8 +41,8 @@ export default function HomePage() {
           <h1 className="text-5xl font-bold mb-6">AI Sales Agents That<br /><span className="text-primary">Never Sleep</span></h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">Automate lead qualification, engagement, and meeting booking with AI agents that work 24/7.</p>
           <div className="flex gap-4 justify-center">
-            <Link href="/sign-up"><Button size="lg">Start Free <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
-            <Link href="#pricing"><Button variant="outline" size="lg">View Pricing</Button></Link>
+            <Link href="/sign-up"><Button size="lg" className='border-2'>Start Free <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
+            {/* <Link href="#pricing"><Button variant="outline" size="lg">View Pricing</Button></Link> */}
           </div>
         </div>
       </section>
@@ -61,29 +61,59 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      <section id="pricing" className="py-20">
+      {/* Why Teams Choose u8u.ai */}
+      <section className="py-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Simple Pricing</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {plans.map((plan) => (
-              <div key={plan.name} className={`p-6 rounded-xl border ${plan.popular ? 'border-primary ring-2 ring-primary' : ''}`}>
-                {plan.popular && <span className="bg-primary text-white text-xs px-2 py-1 rounded-full">Most Popular</span>}
-                <h3 className="text-xl font-semibold mt-2">{plan.name}</h3>
-                <p className="text-3xl font-bold my-4">{plan.price}<span className="text-sm font-normal text-gray-500">/mo</span></p>
-                <p className="text-sm text-gray-500 mb-4">{plan.conversations} conversations/mo</p>
-                <ul className="space-y-2 mb-6">
-                  {plan.features.map((f) => <li key={f} className="flex items-center gap-2 text-sm"><CheckCircle className="h-4 w-4 text-green-500" />{f}</li>)}
-                </ul>
-                <Link href="/sign-up"><Button className="w-full" variant={plan.popular ? 'default' : 'outline'}>Get Started</Button></Link>
-              </div>
-            ))}
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-3">
+              Why Teams Choose <span className="text-primary">u8u.ai</span>
+            </h2>
+            <p className="text-gray-500">A new standard for intelligent sales systems.</p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr>
+                  <th className="px-6 py-4 text-center text-black font-medium bg-gray-50 border-b">Capability</th>
+                  <th className="px-6 py-4 text-center text-black font-medium bg-gray-50 border-b">Automation</th>
+                  <th className="px-6 py-4 text-center text-black font-medium bg-gray-50 border-b">AI Tools</th>
+                  <th className="px-6 py-4 text-center text-black font-medium bg-gray-50 border-b">u8u.ai</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ['Understands customer intent', '✕', '⚠', '✓ Intelligent AI'],
+                  ['Real-time decision making', 'Rule-based', 'Basic', '✓ Dynamic AI'],
+                  ['Handles objections', '✕', 'Weak', '✓ Human-like'],
+                  ['Guides buying decision', '✕', 'Partial', '✓ Smart guidance'],
+                  ['Closes deals', '✕', '✕', '✓ Revenue-focused'],
+                  ['Multi-channel support', '✕', 'Partial', '✓ Full coverage'],
+                  ['Complete system', '✕', '✕', '✓ End-to-End'],
+                  ['Lead auto-qualification', 'Partial', 'Weak', '✓ BANT scoring'],
+                  ['Voice AI calling', '✕', '✕', '✓ Native support'],
+                  ['Works 24/7 autonomously', '✕', 'Partial', '✓ Always on'],
+                ].map(([capability, auto, aiTools, u8u], i) => (
+                  <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <td className="px-6 py-3 text-gray-700 border-b text-center">{capability}</td>
+                    <td className="px-6 py-3 text-center border-b">
+                      <span className={auto === '✕' ? 'text-red-500' : auto === '⚠' ? 'text-yellow-500' : 'text-yellow-600 text-l font-medium'}>{auto}</span>
+                    </td>
+                    <td className="px-6 py-3 text-center border-b">
+                      <span className={aiTools === '✕' ? 'text-red-500' : 'text-yellow-600 text-l font-medium'}>{aiTools}</span>
+                    </td>
+                    <td className="px-6 py-3 text-center  border-b ">
+                      <span className="text-violet-600 text-l font-bold">{u8u}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
-      {/* <LandingChat /> */}
       <footer className="border-t py-8 text-center text-gray-500">
-        <p>© {new Date().getFullYear()} Fuelo Technologies. Built for Bangalore Startups.</p>
+        <p>© {new Date().getFullYear()} Fuelo Technologies (OPC) Private Limited. Built for Startups.</p>
       </footer>
 
     </div>
