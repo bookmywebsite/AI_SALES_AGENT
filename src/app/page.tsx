@@ -1,16 +1,20 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Bot, Mail, Phone, BarChart3, Calendar, Shield, ArrowRight, CheckCircle } from 'lucide-react';
+import { Bot, Mail, Phone, BarChart3, Calendar, Shield, ArrowRight, CheckCircle, MessageCircle, MessageCirclePlus, SquareKanbanIcon, Workflow } from 'lucide-react';
+import { Agent } from 'http';
 // import { LandingChat } from '@/components/chat/LandingChat';
 
 export default function HomePage() {
   const features = [
-    { icon: Bot, title: '24/7 AI Chat', description: 'Engage visitors instantly with intelligent conversations' },
-    { icon: Mail, title: 'Email Sequences', description: 'Automated personalized outreach that converts' },
-    { icon: Phone, title: 'Voice Agent', description: 'Natural phone conversations powered by AI' },
+    { icon: MessageCirclePlus, title: '24/7 AI Chat', description: 'Engage visitors instantly with intelligent conversations' },
+    { icon: Mail, title: 'Email Automation', description: 'Automated personalized outreach that converts' },
+    { icon: Phone, title: 'Voice AI Calls', description: 'Natural phone conversations powered by AI' },
     { icon: BarChart3, title: 'BANT Scoring', description: 'Automatic lead qualification with AI' },
     { icon: Calendar, title: 'Meeting Booking', description: 'Seamless calendar integration' },
     { icon: Shield, title: 'Enterprise Ready', description: 'Secure, scalable, reliable' },
+    { icon: Bot, title: 'Custom AI Agents', description: 'Tailor agents to your unique sales process' },
+    { icon: SquareKanbanIcon, title: 'CRM Integration', description: 'Sync data with your CRM in real-time' },
+    { icon: Workflow, title: 'Full Automation', description: 'Engage leads on their preferred channels' },
   ];
 
   const plans = [
@@ -26,8 +30,8 @@ export default function HomePage() {
         <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="text-2xl font-bold">u8u<span className="text-primary">.ai</span></Link>
           <div className="flex items-center gap-4">
+            <Link href="/sign-up"><Button>Sign Up</Button></Link>
             <Link href="/sign-in"><Button variant="ghost">Sign In</Button></Link>
-            <Link href="/sign-up"><Button>Get Started</Button></Link>
           </div>
         </nav>
       </header>
@@ -79,7 +83,7 @@ export default function HomePage() {
       </section>
       {/* <LandingChat /> */}
       <footer className="border-t py-8 text-center text-gray-500">
-        <p>© 2024 u8u.ai. Built for Bangalore Startups.</p>
+        <p>© {new Date().getFullYear()} Fuelo Technologies. Built for Bangalore Startups.</p>
       </footer>
 
     </div>
