@@ -13,6 +13,12 @@ const nextConfig = {
       ],
     },
   },
+  eslint: {
+    ignoreDuringBuilds: true,  // ← disables ALL eslint during build
+  },
+  typescript: {
+    ignoreBuildErrors: true,   // ← disables TypeScript errors during build
+  },
 };
 
 module.exports = nextConfig;

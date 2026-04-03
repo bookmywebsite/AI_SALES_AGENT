@@ -33,7 +33,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     const org = await prisma.organization.create({
       data: {
         name: `${clerkUser.firstName ?? 'My'}'s Org`,
-        slug: slugify(`${clerkUser.firstName ?? 'user'}-${Math.random().toString(36).slice(2)}`),
+        slug: slugify(`${clerkUser.firstName ?? 'user'}-${clerkUser.id.slice(-8)}`),
       },
     });
 
