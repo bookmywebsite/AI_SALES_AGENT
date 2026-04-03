@@ -1,56 +1,53 @@
-import { currentUser } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Phone, Mail, MessageSquare } from 'lucide-react';
+
+function Skeleton({ w, h, r = '8px' }: { w: string; h: string; r?: string }) {
+  return <div style={{ width: w, height: h, borderRadius: r, background: 'rgba(255,255,255,0.06)', animation: 'pulse 1.5s ease-in-out infinite' }} />;
+}
 
 const CH_COLOR: Record<string, string> = { VOICE: '#10b981', EMAIL: '#6366f1', CHAT: '#a855f7' };
 const ST_COLOR: Record<string, string> = { ACTIVE: '#10b981', WAITING: '#f59e0b', CLOSED: '#6b7280', TRANSFERRED: '#06b6d4' };
 
-export default async function ConversationsPage() {
-  const clerkUser = await currentUser();
-  if (!clerkUser) redirect('/sign-in');
+export default function ConversationsPage() {
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [loading, setLoading]             = useState(true);
 
-  const user = await prisma.user.findUnique({ where: { clerkId: clerkUser.id } });
-  if (!user?.organizationId) redirect('/sign-in');
+  useEffect(() => {
+    fetch('/api/conversations?limit=50')
+      .then(r => r.json())
+      .then(d => { setConversations(d.conversations ?? []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
 
-  const conversations = await prisma.conversation.findMany({
-    where:   { organizationId: user.organizationId },
-    orderBy: { startedAt: 'desc' },
-    take:    50,
-    include: { lead: { select: { firstName: true, lastName: true, email: true, company: true } } },
-  });
-
-  const messageCountsRaw = await prisma.message.groupBy({
-    by:    ['conversationId'],
-    where: { conversationId: { in: conversations.map(c => c.id) } },
-    _count: { id: true },
-  });
-  const msgCounts = Object.fromEntries(messageCountsRaw.map(r => [r.conversationId, r._count.id]));
+  const voice = conversations.filter(c => c.channel === 'VOICE').length;
+  const email = conversations.filter(c => c.channel === 'EMAIL').length;
+  const chat  = conversations.filter(c => c.channel === 'CHAT').length;
 
   return (
     <div style={{ padding: '28px 32px' }}>
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.03em', color: '#fff', margin: 0 }}>Conversations</h1>
-        <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginTop: '4px' }}>{conversations.length} total conversations</p>
+        <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginTop: '4px' }}>
+          {loading ? 'Loading...' : `${conversations.length} total conversations`}
+        </p>
       </div>
 
-      {/* Stats row */}
+      {/* Channel stat cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '14px', marginBottom: '24px' }}>
         {[
-          { label: 'Voice Calls', count: conversations.filter(c => c.channel === 'VOICE').length, color: '#10b981', icon: Phone },
-          { label: 'Email',       count: conversations.filter(c => c.channel === 'EMAIL').length, color: '#6366f1', icon: Mail },
-          { label: 'Chat',        count: conversations.filter(c => c.channel === 'CHAT').length,  color: '#a855f7', icon: MessageSquare },
+          { label: 'Voice Calls', count: voice, icon: Phone,        color: '#10b981' },
+          { label: 'Email',       count: email, icon: Mail,         color: '#6366f1' },
+          { label: 'Chat',        count: chat,  icon: MessageSquare, color: '#a855f7' },
         ].map(s => (
-          <div key={s.label} style={{
-            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
-            borderRadius: '16px', padding: '20px', display: 'flex', alignItems: 'center', gap: '14px',
-          }}>
+          <div key={s.label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px', display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: `${s.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <s.icon size={16} style={{ color: s.color }} />
             </div>
             <div>
-              <div style={{ fontSize: '22px', fontWeight: 700, color: '#fff', letterSpacing: '-0.03em' }}>{s.count}</div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)' }}>{s.label}</div>
+              {loading ? <Skeleton w="32px" h="22px" r="4px" /> : <div style={{ fontSize: '22px', fontWeight: 700, color: '#fff', letterSpacing: '-0.03em' }}>{s.count}</div>}
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>{s.label}</div>
             </div>
           </div>
         ))}
@@ -64,7 +61,11 @@ export default async function ConversationsPage() {
           ))}
         </div>
 
-        {conversations.length === 0 ? (
+        {loading ? (
+          <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {[1,2,3,4,5,6].map(i => <Skeleton key={i} w="100%" h="36px" r="8px" />)}
+          </div>
+        ) : conversations.length === 0 ? (
           <div style={{ padding: '60px', textAlign: 'center', color: 'rgba(255,255,255,0.2)', fontSize: '13px' }}>No conversations yet</div>
         ) : conversations.map((conv, i) => {
           const lead = conv.lead;
@@ -74,11 +75,7 @@ export default async function ConversationsPage() {
           const ChIcon = ch === 'VOICE' ? Phone : ch === 'EMAIL' ? Mail : MessageSquare;
 
           return (
-            <div key={conv.id} style={{
-              display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr',
-              alignItems: 'center', padding: '12px 20px',
-              borderBottom: i < conversations.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
-            }}>
+            <div key={conv.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', alignItems: 'center', padding: '11px 20px', borderBottom: i < conversations.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
               <div>
                 <div style={{ fontSize: '13px', fontWeight: 500, color: '#e2e8f0' }}>{name}</div>
                 <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.28)' }}>{lead?.company ?? lead?.email ?? ''}</div>
@@ -87,10 +84,8 @@ export default async function ConversationsPage() {
                 <ChIcon size={13} style={{ color: CH_COLOR[ch] ?? '#888' }} />
                 <span style={{ fontSize: '12px', color: CH_COLOR[ch] ?? '#888', fontWeight: 500 }}>{ch}</span>
               </div>
-              <div>
-                <span style={{ fontSize: '11px', fontWeight: 500, padding: '3px 8px', borderRadius: '100px', background: `${ST_COLOR[st] ?? '#888'}18`, color: ST_COLOR[st] ?? '#888' }}>{st}</span>
-              </div>
-              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>{msgCounts[conv.id] ?? 0}</div>
+              <div><span style={{ fontSize: '11px', fontWeight: 500, padding: '3px 8px', borderRadius: '100px', background: `${ST_COLOR[st] ?? '#888'}18`, color: ST_COLOR[st] ?? '#888' }}>{st}</span></div>
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>{conv.messageCount ?? 0}</div>
               <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.28)' }}>
                 {new Date(conv.startedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
               </div>
@@ -98,6 +93,8 @@ export default async function ConversationsPage() {
           );
         })}
       </div>
+
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
     </div>
   );
 }

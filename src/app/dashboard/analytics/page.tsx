@@ -1,137 +1,149 @@
-import { currentUser } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
+'use client';
+
+import { useState, useEffect } from 'react';
 import { TrendingUp, Users, Phone, Mail, Calendar, Target } from 'lucide-react';
 
-export default async function AnalyticsPage() {
-  const clerkUser = await currentUser();
-  if (!clerkUser) redirect('/sign-in');
+function Skeleton({ w, h, r = '8px' }: { w: string; h: string; r?: string }) {
+    return <div style={{ width: w, height: h, borderRadius: r, background: 'rgba(255,255,255,0.06)', animation: 'pulse 1.5s ease-in-out infinite' }} />;
+}
 
-  const user = await prisma.user.findUnique({ where: { clerkId: clerkUser.id } });
-  if (!user?.organizationId) redirect('/sign-in');
+export default function AnalyticsPage() {
+    const [stats, setStats] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
-  const orgId = user.organizationId;
+    useEffect(() => {
+        fetch('/api/dashboard/stats')
+            .then(r => r.json())
+            .then(d => { setStats(d); setLoading(false); })
+            .catch(() => setLoading(false));
+    }, []);
 
-  const totalLeads      = await prisma.lead.count({ where: { organizationId: orgId } });
-  const hotLeads        = await prisma.lead.count({ where: { organizationId: orgId, tier: 'HOT' } });
-  const wonLeads        = await prisma.lead.count({ where: { organizationId: orgId, status: 'WON' } });
-  const qualifiedLeads  = await prisma.lead.count({ where: { organizationId: orgId, status: 'QUALIFIED' } });
-  const totalConvs      = await prisma.conversation.count({ where: { organizationId: orgId } });
-  const voiceCalls      = await prisma.conversation.count({ where: { organizationId: orgId, channel: 'VOICE' } });
-  const emailConvs      = await prisma.conversation.count({ where: { organizationId: orgId, channel: 'EMAIL' } });
-  const meetings        = await prisma.meeting.count({ where: { organizationId: orgId } });
-  const emailsSent      = await prisma.email.count({ where: { lead: { organizationId: orgId } } });
+    const metrics = [
+        { label: 'Total Leads', value: stats?.totalLeads ?? 0, icon: Users, color: '#6366f1', sub: `${stats?.hotLeads ?? 0} hot` },
+        { label: 'Conversations', value: stats?.totalConversations ?? 0, icon: Phone, color: '#10b981', sub: `${stats?.voiceCalls ?? 0} voice` },
+        { label: 'Meetings Booked', value: stats?.meetingsBooked ?? 0, icon: Calendar, color: '#a855f7', sub: 'total' },
+        { label: 'Qualified Leads', value: stats?.qualifiedLeads ?? 0, icon: Target, color: '#f59e0b', sub: `${stats?.qualRate ?? 0}% rate` },
+        { label: 'Won Deals', value: stats?.wonLeads ?? 0, icon: TrendingUp, color: '#10b981', sub: `${stats?.convRate ?? '0.0'}% conv.` },
+        { label: 'Pending Calls', value: stats?.scheduledJobs ?? 0, icon: Mail, color: '#06b6d4', sub: 'scheduled' },
+    ];
 
-  const convRate  = totalLeads > 0 ? ((wonLeads / totalLeads) * 100).toFixed(1) : '0';
-  const qualRate  = totalLeads > 0 ? ((qualifiedLeads / totalLeads) * 100).toFixed(1) : '0';
+    const pipeline = [
+        { label: 'New', count: stats?.newLeads ?? 0, color: '#6366f1' },
+        { label: 'Contacted', count: stats?.contactedLeads ?? 0, color: '#06b6d4' },
+        { label: 'Qualified', count: stats?.qualifiedLeads ?? 0, color: '#10b981' },
+        { label: 'Meeting Set', count: stats?.meetingSetLeads ?? 0, color: '#a855f7' },
+        { label: 'Won', count: stats?.wonLeads ?? 0, color: '#f59e0b' },
+        { label: 'Lost', count: stats?.lostLeads ?? 0, color: '#ef4444' },
+    ];
 
-  const metrics = [
-    { label: 'Total Leads',       value: totalLeads,    icon: Users,       color: '#6366f1', sub: `${hotLeads} hot` },
-    { label: 'Conversations',     value: totalConvs,    icon: Phone,       color: '#10b981', sub: `${voiceCalls} voice` },
-    { label: 'Emails Sent',       value: emailsSent,    icon: Mail,        color: '#06b6d4', sub: `${emailConvs} threads` },
-    { label: 'Meetings Booked',   value: meetings,      icon: Calendar,    color: '#a855f7', sub: 'total' },
-    { label: 'Qualified Leads',   value: qualifiedLeads, icon: Target,     color: '#f59e0b', sub: `${qualRate}% rate` },
-    { label: 'Won Deals',         value: wonLeads,      icon: TrendingUp,  color: '#10b981', sub: `${convRate}% conv.` },
-  ];
+    const total = stats?.totalLeads ?? 1;
 
-  const pipelineStages = [
-    { label: 'New',         count: await prisma.lead.count({ where: { organizationId: orgId, status: 'NEW' } }),         color: '#6366f1' },
-    { label: 'Contacted',   count: await prisma.lead.count({ where: { organizationId: orgId, status: 'CONTACTED' } }),   color: '#06b6d4' },
-    { label: 'Engaged',     count: await prisma.lead.count({ where: { organizationId: orgId, status: 'ENGAGED' } }),     color: '#8b5cf6' },
-    { label: 'Qualified',   count: qualifiedLeads,                                                                         color: '#10b981' },
-    { label: 'Meeting Set', count: await prisma.lead.count({ where: { organizationId: orgId, status: 'MEETING_SET' } }), color: '#a855f7' },
-    { label: 'Won',         count: wonLeads,                                                                               color: '#f59e0b' },
-    { label: 'Lost',        count: await prisma.lead.count({ where: { organizationId: orgId, status: 'LOST' } }),        color: '#ef4444' },
-  ];
-
-  return (
-    <div style={{ padding: '28px 32px' }}>
-      <div style={{ marginBottom: '28px' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.03em', color: '#fff', margin: 0 }}>Analytics</h1>
-        <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginTop: '4px' }}>Performance overview</p>
-      </div>
-
-      {/* Metric cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '14px', marginBottom: '28px' }}>
-        {metrics.map(m => (
-          <div key={m.label} style={{
-            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
-            borderRadius: '18px', padding: '22px', position: 'relative', overflow: 'hidden',
-          }}>
-            <div style={{ position: 'absolute', top: '-16px', right: '-16px', width: '70px', height: '70px', borderRadius: '50%', background: `radial-gradient(circle, ${m.color}22 0%, transparent 70%)` }} />
-            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `${m.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
-              <m.icon size={16} style={{ color: m.color }} />
+    return (
+        <div style={{ padding: '28px 32px' }}>
+            <div style={{ marginBottom: '28px' }}>
+                <h1 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.03em', color: '#fff', margin: 0 }}>Analytics</h1>
+                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginTop: '4px' }}>Performance overview</p>
             </div>
-            <div style={{ fontSize: '26px', fontWeight: 700, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>{m.value}</div>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '5px' }}>{m.label}</div>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)', marginTop: '2px' }}>{m.sub}</div>
-          </div>
-        ))}
-      </div>
 
-      {/* Pipeline funnel */}
-      <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px', padding: '24px', marginBottom: '20px' }}>
-        <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#fff', margin: '0 0 20px' }}>Lead Pipeline Funnel</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {pipelineStages.map(stage => {
-            const pct = totalLeads > 0 ? Math.round((stage.count / totalLeads) * 100) : 0;
-            return (
-              <div key={stage.label}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: stage.color, display: 'inline-block', flexShrink: 0 }} />
-                    <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>{stage.label}</span>
-                  </div>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#fff' }}>
-                    {stage.count} <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.3)' }}>({pct}%)</span>
-                  </span>
+            {/* Metric cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '14px', marginBottom: '24px' }}>
+                {metrics.map(m => (
+                    <div key={m.label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '18px', padding: '22px', position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', top: '-16px', right: '-16px', width: '70px', height: '70px', borderRadius: '50%', background: `radial-gradient(circle, ${m.color}22 0%, transparent 70%)` }} />
+                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `${m.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
+                            <m.icon size={16} style={{ color: m.color }} />
+                        </div>
+                        {loading ? (
+                            <><Skeleton w="48px" h="26px" r="4px" /><div style={{ marginTop: '6px' }}><Skeleton w="70px" h="12px" r="4px" /></div></>
+                        ) : (
+                            <>
+                                <div style={{ fontSize: '26px', fontWeight: 700, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>{m.value}</div>
+                                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '5px' }}>{m.label}</div>
+                                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)', marginTop: '2px' }}>{m.sub}</div>
+                            </>
+                        )}
+                    </div>
+                ))}
+            </div>
+
+            {/* Pipeline funnel */}
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px', padding: '24px', marginBottom: '20px' }}>
+                <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#fff', margin: '0 0 20px' }}>Lead Pipeline Funnel</h2>
+                {loading ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} w="100%" h="24px" r="6px" />)}
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        {pipeline.map(stage => {
+                            const pct = total > 0 ? Math.round((stage.count / total) * 100) : 0;
+                            return (
+                                <div key={stage.label}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: stage.color, display: 'inline-block', flexShrink: 0 }} />
+                                            <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>{stage.label}</span>
+                                        </div>
+                                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#fff' }}>
+                                            {stage.count} <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.3)' }}>({pct}%)</span>
+                                        </span>
+                                    </div>
+                                    <div style={{ height: '6px', background: 'rgba(255,255,255,0.06)', borderRadius: '100px', overflow: 'hidden' }}>
+                                        <div style={{ height: '100%', width: `${pct}%`, background: stage.color, borderRadius: '100px' }} />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+
+            {/* Channel + Conversion */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px', padding: '24px' }}>
+                    <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#fff', margin: '0 0 16px' }}>Channel Breakdown</h3>
+                    {loading ? <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>{[1, 2, 3].map(i => <Skeleton key={i} w="100%" h="20px" r="4px" />)}</div> : (
+                        [
+                            { label: 'Voice Calls', value: stats?.voiceCalls ?? 0, color: '#10b981', total: stats?.totalConversations ?? 1 },
+                            { label: 'Email', value: stats?.emailConvs ?? 0, color: '#6366f1', total: stats?.totalConversations ?? 1 },
+                            { label: 'Chat', value: stats?.chatConvs ?? 0, color: '#a855f7', total: stats?.totalConversations ?? 1 },
+                        ].map(ch => {
+                            const pct = ch.total > 0 ? Math.round((ch.value / ch.total) * 100) : 0;
+                            return (
+                                <div key={ch.label} style={{ marginBottom: '14px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>{ch.label}</span>
+                                        <span style={{ fontSize: '12px', fontWeight: 600, color: '#fff' }}>{ch.value} <span style={{ color: 'rgba(255,255,255,0.3)', fontWeight: 400 }}>({pct}%)</span></span>
+                                    </div>
+                                    <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '100px', overflow: 'hidden' }}>
+                                        <div style={{ height: '100%', width: `${pct}%`, background: ch.color, borderRadius: '100px' }} />
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
                 </div>
-                <div style={{ height: '6px', background: 'rgba(255,255,255,0.06)', borderRadius: '100px', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${pct}%`, background: stage.color, borderRadius: '100px' }} />
+
+                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px', padding: '24px' }}>
+                    <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#fff', margin: '0 0 16px' }}>Conversion Metrics</h3>
+                    {loading ? <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>{[1, 2, 3].map(i => <Skeleton key={i} w="100%" h="28px" r="4px" />)}</div> : (
+                        [
+                            { label: 'Contact Rate', value: `${stats?.contactRate ?? 0}%` },
+                            { label: 'Qualified Rate', value: `${stats?.qualRate ?? 0}%` },
+                            { label: 'Won Rate', value: `${stats?.convRate ?? '0.0'}%` },
+                        ].map(m => (
+                            <div key={m.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>{m.label}</span>
+                                <span style={{ fontSize: '18px', fontWeight: 700, color: '#10b981' }}>{m.value}</span>
+                            </div>
+                        ))
+                    )}
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Channel split */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px', padding: '24px' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#fff', margin: '0 0 16px' }}>Channel Breakdown</h3>
-          {[
-            { label: 'Voice Calls', value: voiceCalls,                              color: '#10b981', pct: totalConvs > 0 ? Math.round((voiceCalls / totalConvs) * 100) : 0 },
-            { label: 'Email',       value: emailConvs,                              color: '#6366f1', pct: totalConvs > 0 ? Math.round((emailConvs / totalConvs) * 100) : 0 },
-            { label: 'Chat',        value: totalConvs - voiceCalls - emailConvs,    color: '#a855f7', pct: totalConvs > 0 ? Math.round(((totalConvs - voiceCalls - emailConvs) / totalConvs) * 100) : 0 },
-          ].map(ch => (
-            <div key={ch.label} style={{ marginBottom: '14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>{ch.label}</span>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#fff' }}>{ch.value} <span style={{ color: 'rgba(255,255,255,0.3)', fontWeight: 400 }}>({ch.pct}%)</span></span>
-              </div>
-              <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '100px', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${ch.pct}%`, background: ch.color, borderRadius: '100px' }} />
-              </div>
             </div>
-          ))}
-        </div>
 
-        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px', padding: '24px' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#fff', margin: '0 0 16px' }}>Conversion Metrics</h3>
-          {[
-            { label: 'Lead → Contacted',  value: `${totalLeads > 0 ? Math.round(((totalLeads - await prisma.lead.count({ where: { organizationId: orgId, status: 'NEW' } })) / totalLeads * 100)) : 0}%` },
-            { label: 'Contacted → Qualified', value: `${qualRate}%` },
-            { label: 'Qualified → Won',   value: `${convRate}%` },
-          ].map(m => (
-            <div key={m.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-              <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>{m.label}</span>
-              <span style={{ fontSize: '18px', fontWeight: 700, color: '#10b981' }}>{m.value}</span>
-            </div>
-          ))}
+            <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 
