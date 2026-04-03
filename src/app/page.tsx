@@ -272,7 +272,7 @@ export default function HomePage() {
                         onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)'; }}
                         onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                       >
-                        <td style={{ padding: '14px 24px', color: 'rgba(255,255,255,0.7)', fontSize: '14px', textAlign: 'left' }}>
+                        <td style={{ padding: '14px 24px', color: 'rgba(255,255,255,0.7)', fontSize: '14px', textAlign: 'center' }}>
                           {capability}
                         </td>
                         <td style={{ padding: '14px 24px', textAlign: 'center' }}>
