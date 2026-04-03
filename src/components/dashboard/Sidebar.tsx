@@ -1,83 +1,104 @@
 'use client';
-import { useClerk } from '@clerk/nextjs';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
 import {
-    LayoutDashboard,
-    Users,
-    MessageSquare,
-    Bot,
-    Mail,
-    BarChart3,
-    Settings,
-    LogOut,
+  LayoutDashboard, Users, MessageSquare, Bot,
+  Mail, BarChart3, Settings, LogOut, Target, Zap,
 } from 'lucide-react';
 
 const navItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/leads', label: 'Leads', icon: Users },
-    { href: '/dashboard/conversations', label: 'Conversations', icon: MessageSquare },
-    { href: '/dashboard/agents', label: 'AI Agents', icon: Bot },
-    { href: '/dashboard/assignment', label: 'Assignment', icon: Users },
-    { href: '/dashboard/sequences', label: 'Sequences', icon: Mail },
-    { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
-    { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+  { href: '/dashboard',               label: 'Dashboard',     icon: LayoutDashboard },
+  { href: '/dashboard/leads',         label: 'Leads',         icon: Users },
+  { href: '/dashboard/conversations', label: 'Conversations', icon: MessageSquare },
+  { href: '/dashboard/agents',        label: 'AI Agents',     icon: Bot },
+  { href: '/dashboard/assignment',    label: 'Assignment',    icon: Target },
+  { href: '/dashboard/sequences',     label: 'Sequences',     icon: Mail },
+  { href: '/dashboard/analytics',     label: 'Analytics',     icon: BarChart3 },
+  { href: '/dashboard/settings',      label: 'Settings',      icon: Settings },
 ];
 
 export function Sidebar() {
-    const pathname = usePathname();
-    const { signOut } = useClerk();
+  const pathname = usePathname();
 
-    const handleSignOut = async () => {
-        await signOut({ redirectUrl: '/' });  // Clerk clears session + redirects
-    };
+  const handleSignOut = async () => {
+    try { await fetch('/api/auth/signout', { method: 'POST' }); } catch {}
+    window.location.replace('/');
+  };
 
-    const isActive = (href: string) => {
-        if (href === '/dashboard') return pathname === '/dashboard';
-        return pathname.startsWith(href);
-    };
+  const isActive = (href: string) =>
+    href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href);
 
-    return (
-        <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r bg-white flex flex-col">
+  return (
+    <aside style={{
+      position: 'fixed', left: 0, top: 0, zIndex: 40,
+      height: '100vh', width: '220px',
+      background: '#0d0d14',
+      borderRight: '1px solid rgba(255,255,255,0.06)',
+      display: 'flex', flexDirection: 'column',
+    }}>
 
-            {/* Logo */}
-            <div className="flex h-16 items-center border-b px-6 shrink-0">
-                <Link href="/dashboard" className="text-xl font-bold tracking-tight">
-                    u8u<span className="text-primary">.ai</span>
-                </Link>
-            </div>
+      {/* Logo */}
+      <div style={{
+        height: '60px', display: 'flex', alignItems: 'center',
+        padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+        flexShrink: 0,
+      }}>
+        <Link href="/dashboard" style={{ textDecoration: 'none' }}>
+          <span style={{ fontSize: '20px', fontWeight: 700, color: '#fff', letterSpacing: '-0.02em' }}>
+            u8u<span style={{ color: '#818cf8' }}>.ai</span>
+          </span>
+        </Link>
+      </div>
 
-            {/* Nav links */}
-            <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
-                {navItems.map((item) => (
-                    <Link
-                        key={item.href}
-                        href={item.href}
-                        className={cn(
-                            'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-150',
-                            isActive(item.href)
-                                ? 'bg-primary text-gray-600 shadow-sm'
-                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                        )}
-                    >
-                        <item.icon className="h-4 w-4 shrink-0 text-gray-600" />
-                        {item.label}
-                    </Link>
-                ))}
-            </nav>
+      {/* Nav */}
+      <nav style={{ flex: 1, overflowY: 'auto', padding: '12px 10px' }}>
+        {navItems.map((item) => {
+          const active = isActive(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '10px',
+                padding: '9px 12px', borderRadius: '10px', marginBottom: '2px',
+                textDecoration: 'none', fontSize: '13px', fontWeight: 500,
+                background: active ? 'rgba(99,102,241,0.15)' : 'transparent',
+                color: active ? '#a5b4fc' : 'rgba(255,255,255,0.45)',
+                borderLeft: active ? '2px solid #6366f1' : '2px solid transparent',
+                transition: 'all 0.15s',
+              }}
+            >
+              <item.icon size={15} style={{ flexShrink: 0 }} />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
 
-            {/* Sign out */}
-            <div className="shrink-0 border-t p-3">
-                <button
-                    onClick={handleSignOut}
-                    className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all duration-150"
-                >
-                    <LogOut className="h-4 w-4 shrink-0" />
-                    Sign Out
-                </button>
-            </div>
-
-        </aside>
-    );
+      {/* Sign out */}
+      <div style={{ padding: '12px 10px', borderTop: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
+        <button
+          onClick={handleSignOut}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            width: '100%', padding: '9px 12px', borderRadius: '10px',
+            background: 'transparent', border: 'none', cursor: 'pointer',
+            fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.35)',
+            transition: 'all 0.15s',
+          }}
+          onMouseOver={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = '#f87171';
+            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.08)';
+          }}
+          onMouseOut={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)';
+            (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+          }}
+        >
+          <LogOut size={15} style={{ flexShrink: 0 }} />
+          Sign Out
+        </button>
+      </div>
+    </aside>
+  );
 }
