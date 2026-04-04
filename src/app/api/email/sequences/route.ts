@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { enrollLeadInSequence } from '@/lib/email';
 
-// GET /api/email/sequences — list all sequences
+// GET /api/email/sequences
 export async function GET() {
   try {
     const { userId } = await auth();
@@ -24,12 +24,12 @@ export async function GET() {
 
     return NextResponse.json({ success: true, sequences });
   } catch (error) {
-    console.error('[Sequences GET] Error:', error);
+    console.error('[Sequences GET]', error);
     return NextResponse.json({ error: 'Failed to fetch sequences' }, { status: 500 });
   }
 }
 
-// POST /api/email/sequences — create sequence OR enroll lead
+// POST /api/email/sequences
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
@@ -40,7 +40,26 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    // ── Enroll lead in existing sequence ──────────────────────────────────────
+    // ── Toggle sequence active/paused ─────────────────────────────────────────
+    if (body.action === 'toggle') {
+      const { sequenceId, isActive } = body;
+      if (!sequenceId) return NextResponse.json({ error: 'sequenceId required' }, { status: 400 });
+
+      // Verify belongs to org
+      const seq = await prisma.emailSequence.findFirst({
+        where: { id: sequenceId, organizationId: user.organizationId },
+      });
+      if (!seq) return NextResponse.json({ error: 'Sequence not found' }, { status: 404 });
+
+      await prisma.emailSequence.update({
+        where: { id: sequenceId },
+        data:  { isActive: !!isActive },
+      });
+
+      return NextResponse.json({ success: true, isActive: !!isActive });
+    }
+
+    // ── Enroll lead ───────────────────────────────────────────────────────────
     if (body.action === 'enroll') {
       const { sequenceId, leadId } = body;
       if (!sequenceId || !leadId) {
@@ -65,14 +84,14 @@ export async function POST(request: NextRequest) {
         steps: {
           create: (steps ?? []).map((step: any, index: number) => ({
             stepNumber:      index + 1,
-            name:            step.name            ?? `Step ${index + 1}`,
-            delayDays:       step.delayDays        ?? 0,
-            delayHours:      step.delayHours       ?? 0,
-            subjectTemplate: step.subjectTemplate  ?? null,
-            bodyTemplate:    step.bodyTemplate     ?? null,
-            useAI:           step.useAI            ?? true,
-            skipIfReplied:   step.skipIfReplied    ?? true,
-            skipIfMeeting:   step.skipIfMeeting    ?? true,
+            name:            step.name           ?? `Step ${index + 1}`,
+            delayDays:       step.delayDays       ?? 0,
+            delayHours:      step.delayHours      ?? 0,
+            subjectTemplate: step.subjectTemplate ?? null,
+            bodyTemplate:    step.bodyTemplate    ?? null,
+            useAI:           step.useAI           ?? true,
+            skipIfReplied:   step.skipIfReplied   ?? true,
+            skipIfMeeting:   step.skipIfMeeting   ?? true,
           })),
         },
       },
@@ -81,7 +100,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, sequence });
   } catch (error) {
-    console.error('[Sequences POST] Error:', error);
-    return NextResponse.json({ error: 'Failed to create sequence' }, { status: 500 });
+    console.error('[Sequences POST]', error);
+    return NextResponse.json({ error: 'Failed' }, { status: 500 });
   }
 }

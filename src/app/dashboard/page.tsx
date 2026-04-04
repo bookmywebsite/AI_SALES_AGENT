@@ -227,13 +227,13 @@ export default async function DashboardPage() {
                             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981', display: 'inline-block' }} />
                             Live
                         </div>
-                        <Link href="/dashboard/leads">
+                        {/* <Link href="/dashboard/leads">
                             <button style={{
                                 padding: '8px 18px', borderRadius: '12px', fontSize: '13px',
                                 fontWeight: 500, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
                                 color: '#fff', border: 'none', cursor: 'pointer',
                             }}>+ Add Lead</button>
-                        </Link>
+                        </Link> */}
                     </div>
                 </div>
 

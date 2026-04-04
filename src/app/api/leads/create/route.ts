@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
@@ -11,29 +13,52 @@ export async function POST(request: NextRequest) {
     if (!user?.organizationId) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     const body = await request.json();
-    const { email, firstName, lastName, company, phone, jobTitle } = body;
+    const {
+      email, firstName, lastName, phone, company,
+      jobTitle, source, notes, preferredLanguage,
+    } = body;
 
-    if (!email) return NextResponse.json({ error: 'email is required' }, { status: 400 });
+    if (!email) return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+
+    // Check if lead already exists
+    const existing = await prisma.lead.findFirst({
+      where: { organizationId: user.organizationId, email },
+    });
+    if (existing) {
+      return NextResponse.json({ error: 'Lead with this email already exists' }, { status: 409 });
+    }
 
     const lead = await prisma.lead.create({
       data: {
-        organizationId: user.organizationId,
+        organizationId:   user.organizationId,
         email,
-        firstName:  firstName  ?? null,
-        lastName:   lastName   ?? null,
-        company:    company    ?? null,
-        phone:      phone      ?? null,
-        jobTitle:   jobTitle   ?? null,
-        source:     'manual',
-        status:     'NEW',
+        firstName:        firstName        || null,
+        lastName:         lastName         || null,
+        phone:            phone            || null,
+        company:          company          || null,
+        jobTitle:         jobTitle         || null,
+        source:           source           || 'manual',
+        preferredLanguage: preferredLanguage || 'EN',
+        status:           'NEW',
+      },
+    });
+
+    // Log activity
+    await prisma.activity.create({
+      data: {
+        leadId:      lead.id,
+        type:        'lead_created',
+        title:       'Lead created manually',
+        description: notes ? `Notes: ${notes}` : 'Added via dashboard',
+        actorType:   'user',
+        actorId:     user.id,
+        metadata:    { source: 'dashboard', createdBy: user.id },
       },
     });
 
     return NextResponse.json({ success: true, lead });
   } catch (error: any) {
-    if (error?.code === 'P2002') {
-      return NextResponse.json({ error: 'Lead with this email already exists' }, { status: 409 });
-    }
-    return NextResponse.json({ error: 'Failed to create lead' }, { status: 500 });
+    console.error('[Create Lead]', error);
+    return NextResponse.json({ error: error.message ?? 'Failed' }, { status: 500 });
   }
 }
