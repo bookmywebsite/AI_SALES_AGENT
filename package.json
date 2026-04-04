@@ -54,9 +54,8 @@
     "typescript": "^5.0.0"
   },
   "overrides": {
+    "@radix-ui/react-visually-hidden": "1.1.1",
     "iterator.prototype": "1.1.4",
-    "is-negative-zero": "2.0.2",
-    "@radix-ui/react-visually-hidden": "1.1.2"
+    "is-negative-zero": "2.0.2"
   }
-  
 }
