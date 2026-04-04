@@ -212,7 +212,7 @@ export default async function DashboardPage() {
                             Dashboard
                         </h1>
                         <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
-                            Welcome back, {clerkUser.firstName ?? 'there'} · {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
+                            Welcome back, {clerkUser.firstName ?? 'there'}
                         </p>
                     </div>
 
