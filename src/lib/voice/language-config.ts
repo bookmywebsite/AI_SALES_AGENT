@@ -21,7 +21,7 @@ export const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     twilioVoice:    'Polly.Aditi',
     sttLanguage:    'en-IN',
     flagEmoji:      '🇮🇳',
-    greeting:       'Hello {name}, this is {agent} calling from u8u.ai. How are you today?',
+    greeting:       'Hello {name}, this is {agent} calling from PrimePro.ai. How are you today?',
   },
   HI: {
     code:           'HI',
@@ -31,7 +31,7 @@ export const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     twilioVoice:    'Polly.Aditi',
     sttLanguage:    'hi-IN',
     flagEmoji:      '🇮🇳',
-    greeting:       'नमस्ते {name}, मैं {agent} u8u.ai से बोल रहा हूं। आप कैसे हैं?',
+    greeting:       'नमस्ते {name}, मैं {agent} PrimePro.ai से बोल रहा हूं। आप कैसे हैं?',
   },
   TA: {
     code:           'TA',
@@ -41,7 +41,7 @@ export const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     twilioVoice:    'Polly.Aditi',
     sttLanguage:    'ta-IN',
     flagEmoji:      '🇮🇳',
-    greeting:       'வணக்கம் {name}, நான் {agent}, u8u.ai-இல் இருந்து அழைக்கிறேன். நீங்கள் எப்படி இருக்கிறீர்கள்?',
+    greeting:       'வணக்கம் {name}, நான் {agent}, PrimePro.ai-இல் இருந்து அழைக்கிறேன். நீங்கள் எப்படி இருக்கிறீர்கள்?',
   },
   TE: {
     code:           'TE',
@@ -51,7 +51,7 @@ export const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     twilioVoice:    'Polly.Aditi',
     sttLanguage:    'te-IN',
     flagEmoji:      '🇮🇳',
-    greeting:       'నమస్కారం {name}, నేను {agent}, u8u.ai నుండి కాల్ చేస్తున్నాను. మీరు ఎలా ఉన్నారు?',
+    greeting:       'నమస్కారం {name}, నేను {agent}, PrimePro.ai నుండి కాల్ చేస్తున్నాను. మీరు ఎలా ఉన్నారు?',
   },
   KN: {
     code:           'KN',
@@ -61,7 +61,7 @@ export const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     twilioVoice:    'Polly.Aditi',
     sttLanguage:    'kn-IN',
     flagEmoji:      '🇮🇳',
-    greeting:       'ನಮಸ್ಕಾರ {name}, ನಾನು {agent}, u8u.ai ನಿಂದ ಕರೆ ಮಾಡುತ್ತಿದ್ದೇನೆ. ನೀವು ಹೇಗಿದ್ದೀರಿ?',
+    greeting:       'ನಮಸ್ಕಾರ {name}, ನಾನು {agent}, PrimePro.ai ನಿಂದ ಕರೆ ಮಾಡುತ್ತಿದ್ದೇನೆ. ನೀವು ಹೇಗಿದ್ದೀರಿ?',
   },
   ML: {
     code:           'ML',
@@ -71,7 +71,7 @@ export const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     twilioVoice:    'Polly.Aditi',
     sttLanguage:    'ml-IN',
     flagEmoji:      '🇮🇳',
-    greeting:       'നമസ്കാരം {name}, ഞാൻ {agent}, u8u.ai-ൽ നിന്ന് വിളിക്കുന്നു. സുഖമാണോ?',
+    greeting:       'നമസ്കാരം {name}, ഞാൻ {agent}, PrimePro.ai-ൽ നിന്ന് വിളിക്കുന്നു. സുഖമാണോ?',
   },
   MR: {
     code:           'MR',
@@ -81,7 +81,7 @@ export const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     twilioVoice:    'Polly.Aditi',
     sttLanguage:    'mr-IN',
     flagEmoji:      '🇮🇳',
-    greeting:       'नमस्कार {name}, मी {agent}, u8u.ai वरून कॉल करत आहे. तुम्ही कसे आहात?',
+    greeting:       'नमस्कार {name}, मी {agent}, PrimePro.ai वरून कॉल करत आहे. तुम्ही कसे आहात?',
   },
   BN: {
     code:           'BN',
@@ -91,7 +91,7 @@ export const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     twilioVoice:    'Polly.Aditi',
     sttLanguage:    'bn-IN',
     flagEmoji:      '🇮🇳',
-    greeting:       'নমস্কার {name}, আমি {agent}, u8u.ai থেকে কল করছি। আপনি কেমন আছেন?',
+    greeting:       'নমস্কার {name}, আমি {agent}, PrimePro.ai থেকে কল করছি। আপনি কেমন আছেন?',
   },
   GU: {
     code:           'GU',
@@ -101,7 +101,7 @@ export const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     twilioVoice:    'Polly.Aditi',
     sttLanguage:    'gu-IN',
     flagEmoji:      '🇮🇳',
-    greeting:       'નમસ્તે {name}, હું {agent}, u8u.ai તરફથી કૉલ કરી રહ્યો છું. તમે કેમ છો?',
+    greeting:       'નમસ્તે {name}, હું {agent}, PrimePro.ai તરફથી કૉલ કરી રહ્યો છું. તમે કેમ છો?',
   },
   PA: {
     code:           'PA',
@@ -111,7 +111,7 @@ export const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     twilioVoice:    'Polly.Aditi',
     sttLanguage:    'pa-IN',
     flagEmoji:      '🇮🇳',
-    greeting:       'ਸਤ ਸ੍ਰੀ ਅਕਾਲ {name}, ਮੈਂ {agent}, u8u.ai ਤੋਂ ਕਾਲ ਕਰ ਰਿਹਾ ਹਾਂ। ਤੁਸੀਂ ਕਿਵੇਂ ਹੋ?',
+    greeting:       'ਸਤ ਸ੍ਰੀ ਅਕਾਲ {name}, ਮੈਂ {agent}, PrimePro.ai ਤੋਂ ਕਾਲ ਕਰ ਰਿਹਾ ਹਾਂ। ਤੁਸੀਂ ਕਿਵੇਂ ਹੋ?',
   },
   OR: {
     code:           'OR',
@@ -121,7 +121,7 @@ export const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     twilioVoice:    'Polly.Aditi',
     sttLanguage:    'or-IN',
     flagEmoji:      '🇮🇳',
-    greeting:       'ନମସ୍କାର {name}, ମୁଁ {agent}, u8u.ai ରୁ କଲ୍ କରୁଛି। ଆପଣ କେମିତି ଅଛନ୍ତି?',
+    greeting:       'ନମସ୍କାର {name}, ମୁଁ {agent}, PrimePro.ai ରୁ କଲ୍ କରୁଛି। ଆପଣ କେମିତି ଅଛନ୍ତି?',
   },
 };
 

@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
         lead = await prisma.lead.create({
           data: {
             organizationId: agent.organizationId,
-            email:          `anonymous_${Date.now()}@chat.u8u.ai`,
+            email:          `anonymous_${Date.now()}@chat.PrimePro.ai`,
             firstName:      'Anonymous',
             source:         'chat',
             status:         'NEW',
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // ── Existing conversation — if email now provided, link to real lead ────
-      if (email && conversation.lead?.email?.includes('@chat.u8u.ai')) {
+      if (email && conversation.lead?.email?.includes('@chat.PrimePro.ai')) {
         let realLead = await prisma.lead.findFirst({
           where: { organizationId: agent.organizationId, email },
         });

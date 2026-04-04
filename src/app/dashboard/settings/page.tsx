@@ -22,7 +22,7 @@ export default function SettingsPage() {
 
   const appUrl    = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
   const embedCode = agentId
-    ? `<script>\n(function(){\n  var s = document.createElement('script');\n  s.src = '${appUrl}/widget.js';\n  s.async = true;\n  s.onload = function(){ window.U8U.init({ agentId: '${agentId}' }); };\n  document.body.appendChild(s);\n})();\n</script>`
+    ? `<script>\n(function(){\n  var s = document.createElement('script');\n  s.src = '${appUrl}/widget.js';\n  s.async = true;\n  s.onload = function(){ window.PrimePro.init({ agentId: '${agentId}' }); };\n  document.body.appendChild(s);\n})();\n</script>`
     : 'Loading agent ID...';
 
   const copyCode = () => {
@@ -57,7 +57,7 @@ export default function SettingsPage() {
           Settings
         </h1>
         <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginTop: '4px' }}>
-          Configure your u8u.ai workspace
+          Configure your PrimePro.ai workspace
         </p>
       </div>
 
@@ -208,7 +208,7 @@ export default function SettingsPage() {
 //     process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
 //   const embedCode = agentId
-//     ? `<script>\n(function(){\n  var s = document.createElement('script');\n  s.src = '${appUrl}/widget.js';\n  s.async = true;\n  s.onload = function(){ window.U8U.init({ agentId: '${agentId}' }); };\n  document.body.appendChild(s);\n})();\n</script>`
+//     ? `<script>\n(function(){\n  var s = document.createElement('script');\n  s.src = '${appUrl}/widget.js';\n  s.async = true;\n  s.onload = function(){ window.PrimePro.init({ agentId: '${agentId}' }); };\n  document.body.appendChild(s);\n})();\n</script>`
 //     : 'Loading agent ID...';
 
 //   const copyCode = () => {

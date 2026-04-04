@@ -45,7 +45,7 @@ export function Sidebar() {
       }}>
         <Link href="/dashboard" style={{ textDecoration: 'none' }}>
           <span style={{ fontSize: '20px', fontWeight: 700, color: '#fff', letterSpacing: '-0.02em' }}>
-            u8u<span style={{ color: '#818cf8' }}>.ai</span>
+            PrimePro<span style={{ color: '#818cf8' }}>.ai</span>
           </span>
         </Link>
       </div>

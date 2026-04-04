@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     if (status) where.status = status;
 
     // Exclude anonymous leads
-    where.NOT = { email: { endsWith: '@chat.u8u.ai' } };
+    where.NOT = { email: { endsWith: '@chat.PrimePro.ai' } };
 
     const leads = await prisma.lead.findMany({
       where,

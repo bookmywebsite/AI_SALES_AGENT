@@ -45,7 +45,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<string> {
         to: { email: options.to, name: options.toName ?? options.to },
         from: {
             email: options.fromEmail ?? process.env.SENDGRID_FROM_EMAIL!,
-            name: options.fromName ?? process.env.SENDGRID_FROM_NAME ?? 'u8u.ai',
+            name: options.fromName ?? process.env.SENDGRID_FROM_NAME ?? 'PrimePro.ai',
         },
         replyTo: options.replyTo ?? process.env.SENDGRID_FROM_EMAIL!,
         subject: options.subject,
@@ -121,7 +121,7 @@ The html field should be the text wrapped in simple HTML with <p> tags. Keep it 
     } catch {
         // Fallback if JSON parse fails
         return {
-            subject: isFollowUp ? `Following up — ${opts.companyName ?? 'u8u.ai'}` : `Quick question, ${opts.leadFirstName ?? 'there'}`,
+            subject: isFollowUp ? `Following up — ${opts.companyName ?? 'PrimePro.ai'}` : `Quick question, ${opts.leadFirstName ?? 'there'}`,
             text: raw,
             html: `<p>${raw}</p>`,
         };

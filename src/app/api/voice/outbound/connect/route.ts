@@ -42,17 +42,17 @@ export async function POST(request: NextRequest) {
     // Answering machine — leave voicemail in correct language
     if (answeredBy?.startsWith('machine')) {
       const voicemailMessages: Record<string, string> = {
-        EN: `Hi ${lead.firstName ?? 'there'}, this is ${agent.name} from u8u.ai. Please visit u8u.ai or call us back. Thank you!`,
-        HI: `नमस्ते ${lead.firstName ?? ''}, मैं ${agent.name} u8u.ai से बोल रहा हूं। कृपया हमें वापस कॉल करें।`,
-        TA: `வணக்கம் ${lead.firstName ?? ''}, நான் ${agent.name}, u8u.ai இலிருந்து. திரும்ப அழைக்கவும்.`,
-        TE: `నమస్కారం ${lead.firstName ?? ''}, నేను ${agent.name}, u8u.ai నుండి. తిరిగి కాల్ చేయండి.`,
-        KN: `ನಮಸ್ಕಾರ ${lead.firstName ?? ''}, ನಾನು ${agent.name}, u8u.ai ನಿಂದ. ತಿರಿಗಿ ಕರೆ ಮಾಡಿ.`,
-        ML: `നമസ്കാരം ${lead.firstName ?? ''}, ഞാൻ ${agent.name}, u8u.ai-ൽ നിന്ന്. തിരിച്ചു വിളിക്കൂ.`,
-        MR: `नमस्कार ${lead.firstName ?? ''}, मी ${agent.name}, u8u.ai वरून. कृपया परत कॉल करा.`,
-        BN: `নমস্কার ${lead.firstName ?? ''}, আমি ${agent.name}, u8u.ai থেকে। আবার কল করুন।`,
-        GU: `નમસ્તે ${lead.firstName ?? ''}, હું ${agent.name}, u8u.ai થી. ફરીથી કૉલ કરો.`,
-        PA: `ਸਤ ਸ੍ਰੀ ਅਕਾਲ ${lead.firstName ?? ''}, ਮੈਂ ${agent.name}, u8u.ai ਤੋਂ। ਵਾਪਸ ਕਾਲ ਕਰੋ।`,
-        OR: `ନମସ୍କାର ${lead.firstName ?? ''}, ମୁଁ ${agent.name}, u8u.ai ରୁ। ଆଉ ଥରେ ଫୋନ୍ କରନ୍ତୁ।`,
+        EN: `Hi ${lead.firstName ?? 'there'}, this is ${agent.name} from PrimePro.ai. Please visit PrimePro.ai or call us back. Thank you!`,
+        HI: `नमस्ते ${lead.firstName ?? ''}, मैं ${agent.name} PrimePro.ai से बोल रहा हूं। कृपया हमें वापस कॉल करें।`,
+        TA: `வணக்கம் ${lead.firstName ?? ''}, நான் ${agent.name}, PrimePro.ai இலிருந்து. திரும்ப அழைக்கவும்.`,
+        TE: `నమస్కారం ${lead.firstName ?? ''}, నేను ${agent.name}, PrimePro.ai నుండి. తిరిగి కాల్ చేయండి.`,
+        KN: `ನಮಸ್ಕಾರ ${lead.firstName ?? ''}, ನಾನು ${agent.name}, PrimePro.ai ನಿಂದ. ತಿರಿಗಿ ಕರೆ ಮಾಡಿ.`,
+        ML: `നമസ്കാരം ${lead.firstName ?? ''}, ഞാൻ ${agent.name}, PrimePro.ai-ൽ നിന്ന്. തിരിച്ചു വിളിക്കൂ.`,
+        MR: `नमस्कार ${lead.firstName ?? ''}, मी ${agent.name}, PrimePro.ai वरून. कृपया परत कॉल करा.`,
+        BN: `নমস্কার ${lead.firstName ?? ''}, আমি ${agent.name}, PrimePro.ai থেকে। আবার কল করুন।`,
+        GU: `નમસ્તે ${lead.firstName ?? ''}, હું ${agent.name}, PrimePro.ai થી. ફરીથી કૉલ કરો.`,
+        PA: `ਸਤ ਸ੍ਰੀ ਅਕਾਲ ${lead.firstName ?? ''}, ਮੈਂ ${agent.name}, PrimePro.ai ਤੋਂ। ਵਾਪਸ ਕਾਲ ਕਰੋ।`,
+        OR: `ନମସ୍କାର ${lead.firstName ?? ''}, ମୁଁ ${agent.name}, PrimePro.ai ରୁ। ଆଉ ଥରେ ଫୋନ୍ କରନ୍ତୁ।`,
       };
 
       const voicemailText = voicemailMessages[language] ?? voicemailMessages.EN;

@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
         body:      emailText ?? emailHtml.replace(/<[^>]*>/g, ''),
         bodyHtml:  emailHtml,
         fromEmail: process.env.SENDGRID_FROM_EMAIL!,
-        fromName:  process.env.SENDGRID_FROM_NAME ?? 'u8u.ai',
+        fromName:  process.env.SENDGRID_FROM_NAME ?? 'PrimePro.ai',
         toEmail:   lead.email,
         toName:    lead.firstName ?? '',
         status:    'SENT',

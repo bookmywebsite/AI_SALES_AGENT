@@ -23,7 +23,7 @@ export function SettingsClient({ agentId, agentName, appUrl }: Props) {
   var s = document.createElement('script');
   s.src = '${appUrl}/widget.js';
   s.async = true;
-  s.onload = function(){ window.U8U.init({ agentId: '${agentId}' }); };
+  s.onload = function(){ window.PrimePro.init({ agentId: '${agentId}' }); };
   document.body.appendChild(s);
 })();
 </script>`

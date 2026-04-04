@@ -7,7 +7,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'u8u.ai - AI Sales Agent',
+  title: 'PrimePro.ai - AI Sales Agent',
   description: 'AI-powered sales agent platform',
 };
 

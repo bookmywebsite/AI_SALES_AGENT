@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       lead = await prisma.lead.create({
         data: {
           organizationId: agent.organizationId,
-          email:          `wa_${phone.replace('+', '')}@whatsapp.u8u.ai`,
+          email:          `wa_${phone.replace('+', '')}@whatsapp.PrimePro.ai`,
           phone,
           source:         'whatsapp',
           status:         'NEW',

@@ -74,7 +74,7 @@ export default function HomePage() {
           }}>
             <Link href="/" style={{ textDecoration: 'none' }}>
               <span style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em', color: '#fff' }}>
-                u8u<span style={{ color: '#818cf8' }}>.ai</span>
+                PrimePro<span style={{ color: '#818cf8' }}>.ai</span>
               </span>
             </Link>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -218,7 +218,7 @@ export default function HomePage() {
         <section style={{ padding: '80px 24px', maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '52px' }}>
             <h2 style={{ fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#fff', marginBottom: '12px' }}>
-              Why Teams Choose <span style={{ color: '#818cf8' }}>u8u.ai</span>
+              Why Teams Choose <span style={{ color: '#818cf8' }}>PrimePro.ai</span>
             </h2>
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '15px' }}>A new standard for intelligent sales systems.</p>
           </div>
@@ -233,7 +233,7 @@ export default function HomePage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                    {['Capability', 'Automation', 'AI Tools', 'u8u.ai'].map((h, i) => (
+                    {['Capability', 'Automation', 'AI Tools', 'PrimePro.ai'].map((h, i) => (
                       <th key={h} style={{
                         padding: '15px 22px',
                         textAlign: i === 0 ? 'left' : 'center',
@@ -246,7 +246,7 @@ export default function HomePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {comparison.map(([capability, auto, aiTools, u8u], i) => (
+                  {comparison.map(([capability, auto, aiTools, PrimePro], i) => (
                     <tr key={i} style={{ borderBottom: i < comparison.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
                       <td style={{ padding: '13px 22px', color: 'rgba(255,255,255,0.7)', fontSize: '13px' }}>{capability}</td>
                       <td style={{ padding: '13px 22px', textAlign: 'center' }}>
@@ -256,7 +256,7 @@ export default function HomePage() {
                         <span style={{ color: aiTools === '✕' ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.42)', fontSize: '13px' }}>{aiTools}</span>
                       </td>
                       <td style={{ padding: '13px 22px', textAlign: 'center', background: 'rgba(99,102,241,0.05)' }}>
-                        <span style={{ color: '#a5b4fc', fontSize: '13px', fontWeight: 500 }}>{u8u}</span>
+                        <span style={{ color: '#a5b4fc', fontSize: '13px', fontWeight: 500 }}>{PrimePro}</span>
                       </td>
                     </tr>
                   ))}
@@ -347,7 +347,7 @@ export default function HomePage() {
 //     <div className="min-h-screen bg-white">
 //       <header className="border-b">
 //         <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
-//           <Link href="/" className="text-2xl font-bold">u8u<span className="text-primary">.ai</span></Link>
+//           <Link href="/" className="text-2xl font-bold">PrimePro<span className="text-primary">.ai</span></Link>
 //           <div className="flex items-center gap-4">
 //             <Link href="/sign-up"><Button>Sign Up</Button></Link>
 //             <Link href="/sign-in"><Button variant="ghost">Sign In</Button></Link>
@@ -380,12 +380,12 @@ export default function HomePage() {
 //           </div>
 //         </div>
 //       </section>
-//       {/* Why Teams Choose u8u.ai */}
+//       {/* Why Teams Choose PrimePro.ai */}
 //       <section className="py-20">
 //         <div className="container mx-auto px-4">
 //           <div className="text-center mb-12">
 //             <h2 className="text-3xl font-bold mb-3">
-//               Why Teams Choose <span className="text-primary">u8u.ai</span>
+//               Why Teams Choose <span className="text-primary">PrimePro.ai</span>
 //             </h2>
 //             <p className="text-gray-500">A new standard for intelligent sales systems.</p>
 //           </div>
@@ -397,7 +397,7 @@ export default function HomePage() {
 //                   <th className="px-6 py-4 text-center text-black font-medium bg-gray-50 border-b">Capability</th>
 //                   <th className="px-6 py-4 text-center text-black font-medium bg-gray-50 border-b">Automation</th>
 //                   <th className="px-6 py-4 text-center text-black font-medium bg-gray-50 border-b">AI Tools</th>
-//                   <th className="px-6 py-4 text-center text-black font-medium bg-gray-50 border-b">u8u.ai</th>
+//                   <th className="px-6 py-4 text-center text-black font-medium bg-gray-50 border-b">PrimePro.ai</th>
 //                 </tr>
 //               </thead>
 //               <tbody>
@@ -412,7 +412,7 @@ export default function HomePage() {
 //                   ['Lead auto-qualification', 'Partial', 'Weak', '✓ BANT scoring'],
 //                   ['Voice AI calling', '✕', '✕', '✓ Native support'],
 //                   ['Works 24/7 autonomously', '✕', 'Partial', '✓ Always on'],
-//                 ].map(([capability, auto, aiTools, u8u], i) => (
+//                 ].map(([capability, auto, aiTools, PrimePro], i) => (
 //                   <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
 //                     <td className="px-6 py-3 text-gray-700 border-b text-center">{capability}</td>
 //                     <td className="px-6 py-3 text-center border-b">
@@ -422,7 +422,7 @@ export default function HomePage() {
 //                       <span className={aiTools === '✕' ? 'text-red-500' : 'text-yellow-600 text-l font-medium'}>{aiTools}</span>
 //                     </td>
 //                     <td className="px-6 py-3 text-center  border-b ">
-//                       <span className="text-violet-600 text-l font-bold">{u8u}</span>
+//                       <span className="text-violet-600 text-l font-bold">{PrimePro}</span>
 //                     </td>
 //                   </tr>
 //                 ))}
