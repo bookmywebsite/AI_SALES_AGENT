@@ -10,7 +10,7 @@ interface Lead {
   tier?: string | null; status: string; createdAt: string;
 }
 
-const TIER_COLOR: Record<string, string> = { HOT: '#ef4444', WARM: '#f59e0b', COLD: '#6b7280' };
+const TIER_COLOR:   Record<string, string> = { HOT: '#ef4444', WARM: '#f59e0b', COLD: '#6b7280' };
 const STATUS_COLOR: Record<string, string> = {
   NEW: '#6366f1', CONTACTED: '#06b6d4', ENGAGED: '#8b5cf6',
   QUALIFIED: '#10b981', MEETING_SET: '#a855f7', WON: '#10b981', LOST: '#6b7280',
@@ -18,10 +18,10 @@ const STATUS_COLOR: Record<string, string> = {
 
 const LANGUAGES = [
   { code: 'EN', label: 'English' }, { code: 'HI', label: 'Hindi' },
-  { code: 'TA', label: 'Tamil' }, { code: 'TE', label: 'Telugu' },
-  { code: 'KN', label: 'Kannada' }, { code: 'ML', label: 'Malayalam' },
-  { code: 'MR', label: 'Marathi' }, { code: 'BN', label: 'Bengali' },
-  { code: 'GU', label: 'Gujarati' }, { code: 'PA', label: 'Punjabi' },
+  { code: 'TA', label: 'Tamil' },  { code: 'TE', label: 'Telugu' },
+  { code: 'KN', label: 'Kannada' },{ code: 'ML', label: 'Malayalam' },
+  { code: 'MR', label: 'Marathi' },{ code: 'BN', label: 'Bengali' },
+  { code: 'GU', label: 'Gujarati' },{ code: 'PA', label: 'Punjabi' },
 ];
 
 const inp: React.CSSProperties = {
@@ -32,9 +32,9 @@ const inp: React.CSSProperties = {
 
 // ── Add Lead Modal ──────────────────────────────────────────────────────────────
 function AddLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [form, setForm] = useState({
+  const [saving, setSaving]   = useState(false);
+  const [error,  setError]    = useState('');
+  const [form,   setForm]     = useState({
     email: '', firstName: '', lastName: '', phone: '', company: '',
     jobTitle: '', source: 'manual', preferredLanguage: 'EN', notes: '',
   });
@@ -45,15 +45,15 @@ function AddLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
   }
 
   async function handleSubmit() {
-    if (!form.email.trim()) { setError('Email is required'); return; }
-    if (!form.firstName.trim()) { setError('First name is required'); return; }
-    if (!form.lastName.trim()) { setError('Last name is required'); return; }
-    if (!form.phone.trim()) { setError('Phone number is required'); return; }
-    if (!form.company.trim()) { setError('Company is required'); return; }
-    if (!form.jobTitle.trim()) { setError('Job title is required'); return; }
+    if (!form.email.trim())     { setError('Email is required');        return; }
+    if (!form.firstName.trim()) { setError('First name is required');   return; }
+    if (!form.lastName.trim())  { setError('Last name is required');    return; }
+    if (!form.phone.trim())     { setError('Phone number is required'); return; }
+    if (!form.company.trim())   { setError('Company is required');      return; }
+    if (!form.jobTitle.trim())  { setError('Job title is required');    return; }
     setSaving(true);
     try {
-      const res = await fetch('/api/leads/create', {
+      const res  = await fetch('/api/leads/create', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
@@ -133,28 +133,26 @@ function AddLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
               <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: '5px' }}>Source <span style={{ color: '#ef4444' }}>*</span></label>
               <select value={form.source} onChange={e => set('source', e.target.value)} style={{
                 width: '100%', padding: '10px 13px', borderRadius: '10px', fontSize: '13px',
-                background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.12)',
+                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
                 color: '#fff', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' as const,
-                appearance: 'auto',
               }}>
-                <option value="manual">Manual Entry</option>
-                <option value="website">Website</option>
-                <option value="referral">Referral</option>
-                <option value="linkedin">LinkedIn</option>
-                <option value="cold_outreach">Cold Outreach</option>
-                <option value="event">Event</option>
-                <option value="other">Other</option>
+                <option value="manual"       style={{ background: '#111118', color: '#fff' }}>Manual Entry</option>
+                <option value="website"      style={{ background: '#111118', color: '#fff' }}>Website</option>
+                <option value="referral"     style={{ background: '#111118', color: '#fff' }}>Referral</option>
+                <option value="linkedin"     style={{ background: '#111118', color: '#fff' }}>LinkedIn</option>
+                <option value="cold_outreach"style={{ background: '#111118', color: '#fff' }}>Cold Outreach</option>
+                <option value="event"        style={{ background: '#111118', color: '#fff' }}>Event</option>
+                <option value="other"        style={{ background: '#111118', color: '#fff' }}>Other</option>
               </select>
             </div>
             <div>
               <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: '5px' }}>Preferred Language <span style={{ color: '#ef4444' }}>*</span></label>
               <select value={form.preferredLanguage} onChange={e => set('preferredLanguage', e.target.value)} style={{
                 width: '100%', padding: '10px 13px', borderRadius: '10px', fontSize: '13px',
-                background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.12)',
+                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
                 color: '#fff', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' as const,
-                appearance: 'auto',
               }}>
-                {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
+                {LANGUAGES.map(l => <option key={l.code} value={l.code} style={{ background: '#111118', color: '#fff' }}>{l.label}</option>)}
               </select>
             </div>
           </div>
@@ -206,20 +204,20 @@ function AddLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
 
 // ── Leads Page ────────────────────────────────────────────────────────────────
 export default function LeadsPage() {
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatus] = useState('');
-  const [agentId, setAgentId] = useState('');
-  const [selected, setSelected] = useState<Lead | null>(null);
-  const [showAdd, setShowAdd] = useState(false);
+  const [leads,       setLeads]      = useState<Lead[]>([]);
+  const [loading,     setLoading]    = useState(true);
+  const [search,      setSearch]     = useState('');
+  const [statusFilter,setStatus]     = useState('');
+  const [agentId,     setAgentId]    = useState('');
+  const [selected,    setSelected]   = useState<Lead | null>(null);
+  const [showAdd,     setShowAdd]    = useState(false);
 
   const fetchLeads = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams();
-    if (search) params.set('search', search);
+    if (search)       params.set('search', search);
     if (statusFilter) params.set('status', statusFilter);
-    const res = await fetch(`/api/leads?${params}`);
+    const res  = await fetch(`/api/leads?${params}`);
     const data = await res.json();
     setLeads(data.leads ?? []);
     setLoading(false);
@@ -228,7 +226,7 @@ export default function LeadsPage() {
   useEffect(() => { fetchLeads(); }, [fetchLeads]);
 
   useEffect(() => {
-    fetch('/api/agent/default').then(r => r.json()).then(d => setAgentId(d.agentId ?? '')).catch(() => { });
+    fetch('/api/agent/default').then(r => r.json()).then(d => setAgentId(d.agentId ?? '')).catch(() => {});
   }, []);
 
   const statuses = ['', 'NEW', 'CONTACTED', 'ENGAGED', 'QUALIFIED', 'MEETING_SET', 'WON', 'LOST'];

@@ -254,7 +254,7 @@ export function QuickActionsPanel({ lead, agentId, onClose }: QuickActionsPanelP
   function LangSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
     return (
       <div className="mb-3">
-        <label className="text-xs text-gray-500 mb-1 flex items-center gap-1 block">
+        <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
           <Globe className="w-3 h-3" /> Call language
         </label>
         <select
@@ -414,7 +414,12 @@ export function QuickActionsPanel({ lead, agentId, onClose }: QuickActionsPanelP
                     type="datetime-local"
                     value={scheduleTime}
                     onChange={(e) => setScheduleTime(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-orange-300"
+                    style={{
+                      width: '100%', padding: '6px 10px', borderRadius: '8px',
+                      border: '1px solid #d1d5db', background: '#fff',
+                      color: '#111', fontSize: '12px', outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
                   />
                 </div>
 
