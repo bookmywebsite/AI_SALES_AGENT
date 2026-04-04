@@ -13,7 +13,7 @@ async function ensureCronStarted() {
     const { startCronWorker } = await import('@/lib/scheduler/cron');
     startCronWorker();
     cronStarted = true;
-  } catch {}
+  } catch { }
 }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -33,36 +33,36 @@ export default async function DashboardLayout({ children }: { children: React.Re
     });
     user = await prisma.user.create({
       data: {
-        clerkId:        clerkUser.id,
-        email:          clerkUser.emailAddresses[0].emailAddress,
-        firstName:      clerkUser.firstName  ?? null,
-        lastName:       clerkUser.lastName   ?? null,
-        imageUrl:       clerkUser.imageUrl   ?? null,
+        clerkId: clerkUser.id,
+        email: clerkUser.emailAddresses[0].emailAddress,
+        firstName: clerkUser.firstName ?? null,
+        lastName: clerkUser.lastName ?? null,
+        imageUrl: clerkUser.imageUrl ?? null,
         organizationId: org.id,
-        role:           'owner',
+        role: 'owner',
       },
     });
     await prisma.agent.create({
       data: {
         organizationId: org.id,
-        name:           'Alex',
-        role:           'Sales Representative',
-        isDefault:      true,
-        isActive:       true,
+        name: 'Alex',
+        role: 'Sales Representative',
+        isDefault: true,
+        isActive: true,
         welcomeMessage: "Hi! 👋 How can I help you today?",
       },
     });
     await prisma.emailSequence.create({
       data: {
         organizationId: org.id,
-        name:           'Default Outreach Sequence',
-        isActive:       true,
+        name: 'Default Outreach Sequence',
+        isActive: true,
         steps: {
           create: [
-            { stepNumber: 1, name: 'Initial Outreach', delayDays: 0,  useAI: true },
-            { stepNumber: 2, name: 'Follow-up #1',     delayDays: 3,  useAI: true },
-            { stepNumber: 3, name: 'Follow-up #2',     delayDays: 7,  useAI: true },
-            { stepNumber: 4, name: 'Break-up Email',   delayDays: 14, useAI: true },
+            { stepNumber: 1, name: 'Initial Outreach', delayDays: 0, useAI: true },
+            { stepNumber: 2, name: 'Follow-up #1', delayDays: 3, useAI: true },
+            { stepNumber: 3, name: 'Follow-up #2', delayDays: 7, useAI: true },
+            { stepNumber: 4, name: 'Break-up Email', delayDays: 14, useAI: true },
           ],
         },
       },
@@ -72,17 +72,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
       where: { id: user.id },
       data: {
         firstName: clerkUser.firstName ?? user.firstName,
-        lastName:  clerkUser.lastName  ?? user.lastName,
-        imageUrl:  clerkUser.imageUrl  ?? user.imageUrl,
-        email:     clerkUser.emailAddresses[0].emailAddress,
+        lastName: clerkUser.lastName ?? user.lastName,
+        imageUrl: clerkUser.imageUrl ?? user.imageUrl,
+        email: clerkUser.emailAddresses[0].emailAddress,
       },
     });
   }
 
   const agent = user.organizationId
     ? await prisma.agent.findFirst({
-        where: { organizationId: user.organizationId, isDefault: true, isActive: true },
-      })
+      where: { organizationId: user.organizationId, isDefault: true, isActive: true },
+    })
     : null;
 
   return (
@@ -93,6 +93,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
       display: 'flex',
       fontFamily: "'DM Sans', system-ui, sans-serif",
     }}>
+      {/* Force dark background on body to prevent white flash */}
+      <style>{`
+        html, body { background: #0a0a0f !important; margin: 0; padding: 0; }
+        * { box-sizing: border-box; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+      `}</style>
       {/* Ambient background orbs — fixed, behind everything */}
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
         <div style={{

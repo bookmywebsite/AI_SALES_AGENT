@@ -12,7 +12,7 @@ const ST_COLOR: Record<string, string> = { ACTIVE: '#10b981', WAITING: '#f59e0b'
 
 export default function ConversationsPage() {
   const [conversations, setConversations] = useState<any[]>([]);
-  const [loading, setLoading]             = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/conversations?limit=50')
@@ -23,10 +23,10 @@ export default function ConversationsPage() {
 
   const voice = conversations.filter(c => c.channel === 'VOICE').length;
   const email = conversations.filter(c => c.channel === 'EMAIL').length;
-  const chat  = conversations.filter(c => c.channel === 'CHAT').length;
+  const chat = conversations.filter(c => c.channel === 'CHAT').length;
 
   return (
-    <div style={{ padding: '28px 32px' }}>
+    <div style={{ padding: '28px 32px', background: '#0a0a0f', minHeight: '100%' }}>
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.03em', color: '#fff', margin: 0 }}>Conversations</h1>
         <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginTop: '4px' }}>
@@ -37,9 +37,9 @@ export default function ConversationsPage() {
       {/* Channel stat cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '14px', marginBottom: '24px' }}>
         {[
-          { label: 'Voice Calls', count: voice, icon: Phone,        color: '#10b981' },
-          { label: 'Email',       count: email, icon: Mail,         color: '#6366f1' },
-          { label: 'Chat',        count: chat,  icon: MessageSquare, color: '#a855f7' },
+          { label: 'Voice Calls', count: voice, icon: Phone, color: '#10b981' },
+          { label: 'Email', count: email, icon: Mail, color: '#6366f1' },
+          { label: 'Chat', count: chat, icon: MessageSquare, color: '#a855f7' },
         ].map(s => (
           <div key={s.label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px', display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: `${s.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -63,15 +63,15 @@ export default function ConversationsPage() {
 
         {loading ? (
           <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {[1,2,3,4,5,6].map(i => <Skeleton key={i} w="100%" h="36px" r="8px" />)}
+            {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} w="100%" h="36px" r="8px" />)}
           </div>
         ) : conversations.length === 0 ? (
           <div style={{ padding: '60px', textAlign: 'center', color: 'rgba(255,255,255,0.2)', fontSize: '13px' }}>No conversations yet</div>
         ) : conversations.map((conv, i) => {
           const lead = conv.lead;
           const name = lead?.firstName ?? lead?.email?.split('@')[0] ?? 'Anonymous';
-          const ch   = conv.channel as string;
-          const st   = conv.status  as string;
+          const ch = conv.channel as string;
+          const st = conv.status as string;
           const ChIcon = ch === 'VOICE' ? Phone : ch === 'EMAIL' ? Mail : MessageSquare;
 
           return (

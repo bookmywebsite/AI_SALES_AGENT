@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth();
@@ -11,13 +13,13 @@ export async function GET(request: NextRequest) {
     if (!user?.organizationId) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     const { searchParams } = new URL(request.url);
-    const limit  = Math.min(parseInt(searchParams.get('limit') ?? '50'), 100);
+    const limit = Math.min(parseInt(searchParams.get('limit') ?? '50'), 100);
     const cursor = searchParams.get('cursor');
 
     const conversations = await prisma.conversation.findMany({
-      where:   { organizationId: user.organizationId },
+      where: { organizationId: user.organizationId },
       orderBy: { startedAt: 'desc' },
-      take:    limit,
+      take: limit,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
       include: {
         lead: {
@@ -29,9 +31,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ conversations }, {
-      headers: { 'Cache-Control': 'private, max-age=15, stale-while-revalidate=30' },
-    });
+    return NextResponse.json({ conversations });
   } catch (error) {
     console.error('[Conversations API]', error);
     return NextResponse.json({ error: 'Failed' }, { status: 500 });

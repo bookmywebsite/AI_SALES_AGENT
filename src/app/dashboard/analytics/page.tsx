@@ -39,7 +39,7 @@ export default function AnalyticsPage() {
     const total = stats?.totalLeads ?? 1;
 
     return (
-        <div style={{ padding: '28px 32px' }}>
+        <div style={{ padding: '28px 32px', background: '#0a0a0f', minHeight: '100%' }}>
             <div style={{ marginBottom: '28px' }}>
                 <h1 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.03em', color: '#fff', margin: 0 }}>Analytics</h1>
                 <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginTop: '4px' }}>Performance overview</p>

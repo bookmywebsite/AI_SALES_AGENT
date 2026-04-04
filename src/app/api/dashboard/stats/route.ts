@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 
-export const revalidate = 60; // Cache for 60 seconds
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
@@ -15,23 +15,23 @@ export async function GET() {
     const orgId = user.organizationId;
 
     // All sequential — pgBouncer safe
-    const totalLeads         = await prisma.lead.count({ where: { organizationId: orgId } });
-    const hotLeads           = await prisma.lead.count({ where: { organizationId: orgId, tier: 'HOT' } });
-    const warmLeads          = await prisma.lead.count({ where: { organizationId: orgId, tier: 'WARM' } });
-    const newLeads           = await prisma.lead.count({ where: { organizationId: orgId, status: 'NEW' } });
-    const contactedLeads     = await prisma.lead.count({ where: { organizationId: orgId, status: 'CONTACTED' } });
-    const qualifiedLeads     = await prisma.lead.count({ where: { organizationId: orgId, status: 'QUALIFIED' } });
-    const meetingSetLeads    = await prisma.lead.count({ where: { organizationId: orgId, status: 'MEETING_SET' } });
-    const wonLeads           = await prisma.lead.count({ where: { organizationId: orgId, status: 'WON' } });
+    const totalLeads = await prisma.lead.count({ where: { organizationId: orgId } });
+    const hotLeads = await prisma.lead.count({ where: { organizationId: orgId, tier: 'HOT' } });
+    const warmLeads = await prisma.lead.count({ where: { organizationId: orgId, tier: 'WARM' } });
+    const newLeads = await prisma.lead.count({ where: { organizationId: orgId, status: 'NEW' } });
+    const contactedLeads = await prisma.lead.count({ where: { organizationId: orgId, status: 'CONTACTED' } });
+    const qualifiedLeads = await prisma.lead.count({ where: { organizationId: orgId, status: 'QUALIFIED' } });
+    const meetingSetLeads = await prisma.lead.count({ where: { organizationId: orgId, status: 'MEETING_SET' } });
+    const wonLeads = await prisma.lead.count({ where: { organizationId: orgId, status: 'WON' } });
     const totalConversations = await prisma.conversation.count({ where: { organizationId: orgId } });
-    const voiceCalls         = await prisma.conversation.count({ where: { organizationId: orgId, channel: 'VOICE' } });
-    const emailConvs         = await prisma.conversation.count({ where: { organizationId: orgId, channel: 'EMAIL' } });
-    const meetingsBooked     = await prisma.meeting.count({ where: { organizationId: orgId } });
-    const scheduledJobs      = await (prisma as any).scheduledJob.count({ where: { status: 'PENDING' } }).catch(() => 0);
+    const voiceCalls = await prisma.conversation.count({ where: { organizationId: orgId, channel: 'VOICE' } });
+    const emailConvs = await prisma.conversation.count({ where: { organizationId: orgId, channel: 'EMAIL' } });
+    const meetingsBooked = await prisma.meeting.count({ where: { organizationId: orgId } });
+    const scheduledJobs = await (prisma as any).scheduledJob.count({ where: { status: 'PENDING' } }).catch(() => 0);
 
-    const chatConvs  = Math.max(0, totalConversations - voiceCalls - emailConvs);
-    const convRate   = totalLeads > 0 ? ((wonLeads / totalLeads) * 100).toFixed(1) : '0.0';
-    const qualRate   = totalLeads > 0 ? Math.round((qualifiedLeads / totalLeads) * 100) : 0;
+    const chatConvs = Math.max(0, totalConversations - voiceCalls - emailConvs);
+    const convRate = totalLeads > 0 ? ((wonLeads / totalLeads) * 100).toFixed(1) : '0.0';
+    const qualRate = totalLeads > 0 ? Math.round((qualifiedLeads / totalLeads) * 100) : 0;
     const contactRate = totalLeads > 0 ? Math.round(((totalLeads - newLeads) / totalLeads) * 100) : 0;
 
     return NextResponse.json({
@@ -40,10 +40,6 @@ export async function GET() {
       totalConversations, voiceCalls, emailConvs, chatConvs,
       meetingsBooked, scheduledJobs,
       convRate, qualRate, contactRate,
-    }, {
-      headers: {
-        'Cache-Control': 'private, max-age=30, stale-while-revalidate=60',
-      },
     });
   } catch (error) {
     console.error('[Dashboard Stats]', error);
