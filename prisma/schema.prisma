@@ -143,8 +143,8 @@ model Agent {
   id                 String          @id @default(cuid())
   organizationId     String
   organization       Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  name               String          @default("Alex")
-  role               String          @default("Sales Representative")
+  name               String          @default("PrimePro")
+  role               String          @default("Hospital AI Assistant")
   avatarUrl          String?
   voiceId            String?         @default("alloy")
   enableChat         Boolean         @default(true)

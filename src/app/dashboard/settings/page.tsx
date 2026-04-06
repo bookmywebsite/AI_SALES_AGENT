@@ -6,7 +6,7 @@ import { Copy, Check, Mail, Phone, CreditCard, Bot } from 'lucide-react';
 export default function SettingsPage() {
   const [copied,    setCopied]    = useState(false);
   const [agentId,   setAgentId]   = useState<string>('');
-  const [agentName, setAgentName] = useState<string>('Alex');
+  const [agentName, setAgentName] = useState<string>('PrimePro');
   const [loading,   setLoading]   = useState(true);
 
   useEffect(() => {
@@ -190,7 +190,7 @@ export default function SettingsPage() {
 // export default function SettingsPage() {
 //   const [copied, setCopied] = useState(false);
 //   const [agentId, setAgentId] = useState<string>('');
-//   const [agentName, setAgentName] = useState<string>('Alex');
+//   const [agentName, setAgentName] = useState<string>('PrimePro');
 //   const [loading, setLoading] = useState(true);
 
 //   useEffect(() => {

@@ -26,7 +26,7 @@ export async function GET() {
 
     return NextResponse.json({
       agentId: agent?.id ?? '',
-      agentName: agent?.name ?? 'Alex',
+      agentName: agent?.name ?? 'PrimePro',
     });
   } catch (error) {
     console.error('[Agent Default]', error);

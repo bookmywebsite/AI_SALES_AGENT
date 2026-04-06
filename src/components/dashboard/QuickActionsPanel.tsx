@@ -194,7 +194,7 @@ export function QuickActionsPanel({ lead, agentId, onClose }: QuickActionsPanelP
       });
       const data = await res.json();
       if (data.success) {
-        setWaResult('✅ WhatsApp message sent — lead can now chat with Alex');
+        setWaResult('✅ WhatsApp message sent — lead can now chat with PrimePro');
         window.open(`https://wa.me/${lead.phone.replace('+', '')}`, '_blank');
       } else {
         setWaResult(`❌ ${data.error ?? 'WhatsApp failed'}`);
@@ -371,7 +371,7 @@ export function QuickActionsPanel({ lead, agentId, onClose }: QuickActionsPanelP
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 text-sm">Instant AI Call</p>
-                    <p className="text-xs text-gray-500">Call now — Alex qualifies via BANT</p>
+                    <p className="text-xs text-gray-500">Call now — PrimePro qualifies via BANT</p>
                   </div>
                 </div>
                 {lead.phone && <p className="text-xs text-gray-500 mb-3">📞 {lead.phone}</p>}
@@ -446,7 +446,7 @@ export function QuickActionsPanel({ lead, agentId, onClose }: QuickActionsPanelP
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 text-sm">WhatsApp AI Chat</p>
-                    <p className="text-xs text-gray-500">Send AI message — lead chats with Alex</p>
+                    <p className="text-xs text-gray-500">Send AI message — lead chats with PrimePro</p>
                   </div>
                 </div>
                 {lead.phone && <p className="text-xs text-gray-500 mb-3">📱 {lead.phone}</p>}
@@ -780,7 +780,7 @@ export function QuickActionsPanel({ lead, agentId, onClose }: QuickActionsPanelP
 //       });
 //       const data = await res.json();
 //       if (data.success) {
-//         setWaResult('✅ WhatsApp message sent — lead can now chat with Alex');
+//         setWaResult('✅ WhatsApp message sent — lead can now chat with PrimePro');
 //         window.open(`https://wa.me/${lead.phone.replace('+', '')}`, '_blank');
 //       } else {
 //         setWaResult(`❌ ${data.error ?? 'WhatsApp failed'}`);
@@ -953,7 +953,7 @@ export function QuickActionsPanel({ lead, agentId, onClose }: QuickActionsPanelP
 //                   </div>
 //                   <div>
 //                     <p className="font-medium text-gray-900 text-sm">Instant AI Call</p>
-//                     <p className="text-xs text-gray-500">Call now — Alex qualifies via BANT</p>
+//                     <p className="text-xs text-gray-500">Call now — PrimePro qualifies via BANT</p>
 //                   </div>
 //                 </div>
 //                 {lead.phone && <p className="text-xs text-gray-500 mb-3">📞 {lead.phone}</p>}
@@ -1023,7 +1023,7 @@ export function QuickActionsPanel({ lead, agentId, onClose }: QuickActionsPanelP
 //                   </div>
 //                   <div>
 //                     <p className="font-medium text-gray-900 text-sm">WhatsApp AI Chat</p>
-//                     <p className="text-xs text-gray-500">Send AI message — lead chats with Alex</p>
+//                     <p className="text-xs text-gray-500">Send AI message — lead chats with PrimePro</p>
 //                   </div>
 //                 </div>
 //                 {lead.phone && <p className="text-xs text-gray-500 mb-3">📱 {lead.phone}</p>}

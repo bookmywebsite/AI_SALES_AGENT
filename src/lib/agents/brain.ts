@@ -72,7 +72,7 @@ export async function processAgentMessage(
     const { agent, lead, conversationHistory, channel } = context;
 
     // Build a rich system prompt
-    const systemPrompt = `You are ${agent.name}, an expert AI Sales Representative.
+    const systemPrompt = `You are ${agent.name}, an expert AI Hospital AI Assistant.
 
 YOUR ROLE: ${agent.role}
 ${(agent as any).systemPrompt ? `\nSPECIAL INSTRUCTIONS: ${(agent as any).systemPrompt}` : ''}

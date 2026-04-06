@@ -46,7 +46,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       data: {
         organizationId: org.id,
         name: 'PrimePro',
-        role: 'Sales Representative',
+        role: 'Hospital AI Assistant',
         isDefault: true,
         isActive: true,
         welcomeMessage: "Hi! 👋 How can I help you today?",
@@ -235,7 +235,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 //     await prisma.agent.create({
 //       data: {
 //         organizationId: org.id,
-//         name:           'Alex',
+//         name:           'PrimePro',
 //         role:           'Sales Representative',
 //         isDefault:      true,
 //         isActive:       true,
@@ -323,7 +323,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 //     });
 
 //     await prisma.agent.create({
-//       data: { organizationId: org.id, name: 'Alex', role: 'Sales Representative', isDefault: true },
+//       data: { organizationId: org.id, name: 'PrimePro', role: 'Sales Representative', isDefault: true },
 //     });
 //   }
 

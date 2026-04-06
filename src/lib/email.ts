@@ -197,8 +197,8 @@ export async function processSequenceStep(
 
     if (step.useAI) {
         const generated = await generateEmailContent({
-            agentName: sequence.agent?.name ?? 'Alex',
-            agentRole: sequence.agent?.role ?? 'Sales Representative',
+            agentName: sequence.agent?.name ?? 'PrimePro',
+            agentRole: sequence.agent?.role ?? 'Hospital AI Assistant',
             companyName: sequence.agent?.companyName ?? '',
             companyDescription: sequence.agent?.companyDescription ?? '',
             productDescription: sequence.agent?.productDescription ?? '',
@@ -243,7 +243,7 @@ export async function processSequenceStep(
             body: text,
             bodyHtml: html,
             fromEmail: process.env.SENDGRID_FROM_EMAIL!,
-            fromName: sequence.agent?.name ?? 'Alex',
+            fromName: sequence.agent?.name ?? 'PrimePro',
             toEmail: lead.email,
             toName: lead.firstName ?? '',
             sequenceId: sequence.id,
