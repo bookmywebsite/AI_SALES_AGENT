@@ -239,7 +239,7 @@ export default async function DashboardPage() {
 
                 {/* ── Stats Grid ──────────────────────────────────────────────── */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '16px', marginBottom: '28px' }}>
-                    <StatCard label="Total Leads" value={totalLeads} icon={Users} accent="#6366f1" trend="+today" />
+                    <StatCard label="Total Leads" value={totalLeads} icon={Users} accent="#6366f1"/>
                     <StatCard label="Hot Leads" value={hotLeads} icon={Zap} accent="#ef4444" sub={`${warmLeads} warm`} />
                     <StatCard label="Conversations" value={totalConversations} icon={MessageSquare} accent="#8b5cf6" sub={`${voiceCalls} calls · ${emailConvs} emails`} />
                     <StatCard label="Meetings Booked" value={meetingsBooked} icon={Calendar} accent="#a855f7" />

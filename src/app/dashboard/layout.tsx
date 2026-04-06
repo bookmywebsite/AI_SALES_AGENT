@@ -45,7 +45,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     await prisma.agent.create({
       data: {
         organizationId: org.id,
-        name: 'Alex',
+        name: 'PrimePro',
         role: 'Sales Representative',
         isDefault: true,
         isActive: true,
