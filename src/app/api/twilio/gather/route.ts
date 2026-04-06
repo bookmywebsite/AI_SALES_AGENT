@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { generateHospitalResponse } from '@/lib/agents/hospital-brain';
 import { generateAIVoiceResponse } from '@/lib/twilio';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const formData     = await request.formData();
-    const callSid      = formData.get('CallSid')      as string;
-    const speechResult = (formData.get('SpeechResult') as string) ?? '';
+    const formData      = await request.formData();
+    const callSid       = formData.get('CallSid')       as string;
+    const speechResult  = (formData.get('SpeechResult') as string) ?? '';
 
     console.log(`[Gather] CallSid: ${callSid} | Speech: "${speechResult}"`);
 
-    // ── Find conversation by callSid ────────────────────────────────────────
     const conversation = await prisma.conversation.findFirst({
       where:   { twilioCallSid: callSid },
       include: {
@@ -24,14 +22,14 @@ export async function POST(request: NextRequest) {
     });
 
     if (!conversation) {
-      return xmlResponse(`<?xml version="1.0" encoding="UTF-8"?>
+      return xml(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="Polly.Aditi" language="en-IN">Sorry, I lost the context of our call. Please call us back. Goodbye!</Say>
+  <Say voice="Polly.Aditi" language="en-IN">I am sorry, I lost our conversation. Please call us back. Goodbye!</Say>
   <Hangup/>
 </Response>`);
     }
 
-    // ── Save patient speech ─────────────────────────────────────────────────
+    // Save patient speech
     if (speechResult) {
       await prisma.message.create({
         data: {
@@ -43,110 +41,21 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const callHistory = conversation.messages.map(m => ({
-      role:    m.role,
-      content: m.content,
-    }));
+    const agent    = conversation.agent as any;
+    const lead     = conversation.lead;
+    const history  = conversation.messages.map(m => ({ role: m.role, content: m.content }));
 
-    const agent        = conversation.agent as any;
-    const isHospital   = agent.agentType === 'HOSPITAL' || agent.role?.toLowerCase().includes('hospital') || agent.role?.toLowerCase().includes('medical') || agent.companyName?.toLowerCase().includes('hospital') || agent.companyName?.toLowerCase().includes('clinic') || agent.companyName?.toLowerCase().includes('health');
+    const { twiml, shouldHangup, aiText } = await generateAIVoiceResponse({
+      userSpeech:         speechResult || 'Hello',
+      agentName:          agent.name ?? 'PrimePro',
+      agentRole:          agent.role ?? 'Hospital AI Assistant',
+      companyName:        agent.companyName ?? (agent as any).organization?.name ?? 'City Hospital',
+      leadName:           lead?.firstName ?? undefined,
+      callHistory:        history,
+      preferredLanguage:  lead?.preferredLanguage ?? 'EN',
+    });
 
-    let aiText    = '';
-    let twiml     = '';
-    let shouldHangup = false;
-
-    if (isHospital) {
-      // ── Hospital AI brain ─────────────────────────────────────────────────
-      const result = await generateHospitalResponse({
-        userSpeech:   speechResult || 'Hello',
-        agentName:    agent.name,
-        hospitalName: agent.companyName ?? agent.organization?.name ?? 'the hospital',
-        patientName:  conversation.lead?.firstName ?? undefined,
-        language:     conversation.lead?.preferredLanguage ?? 'EN',
-        callHistory,
-        callSid,
-      });
-
-      aiText       = result.aiText;
-      twiml        = result.twiml;
-      shouldHangup = result.shouldHangup;
-
-      // ── Store structured hospital data in Activity ────────────────────────
-      if (conversation.leadId) {
-        const activityData: Record<string, any> = {
-          agentType:  result.agentType,
-          isEmergency: result.isEmergency,
-        };
-
-        if (result.appointmentData && Object.keys(result.appointmentData).length > 0) {
-          activityData.appointmentData = result.appointmentData;
-
-          // Create a meeting record if appointment details are captured
-          if (result.appointmentData.department || result.appointmentData.preferredDate) {
-            try {
-              await (prisma as any).meeting.create({
-                data: {
-                  organizationId: agent.organizationId,
-                  leadId:         conversation.leadId,
-                  agentId:        conversation.agentId,
-                  title:          `Hospital Appointment - ${result.appointmentData.department ?? 'General'}`,
-                  notes:          `Booked via AI call. Preferred: ${result.appointmentData.preferredDate ?? 'TBD'} ${result.appointmentData.preferredTime ?? ''}`.trim(),
-                  status:         'SCHEDULED',
-                  scheduledAt:    new Date(),
-                },
-              }).catch(() => null); // Don't fail if meeting creation fails
-            } catch {}
-          }
-        }
-
-        if (result.triageData && Object.keys(result.triageData).length > 0) {
-          activityData.triageData = result.triageData;
-        }
-
-        if (result.patientNotes) {
-          activityData.patientNotes = result.patientNotes;
-        }
-
-        if (result.isEmergency) {
-          activityData.emergency = true;
-          // Update lead status to HOT for emergency
-          await prisma.lead.update({
-            where: { id: conversation.leadId },
-            data:  { tier: 'HOT', status: 'ENGAGED' },
-          }).catch(() => null);
-        }
-
-        // Log activity
-        await prisma.activity.create({
-          data: {
-            leadId:      conversation.leadId,
-            type:        result.isEmergency ? 'emergency_detected' : `hospital_${result.agentType.toLowerCase()}`,
-            title:       result.isEmergency ? '🚨 Emergency Detected on Call' : `Hospital AI: ${result.agentType}`,
-            description: `Patient said: "${speechResult}" | AI responded as ${result.agentType}`,
-            actorType:   'agent',
-            actorId:     conversation.agentId,
-            metadata:    activityData,
-          },
-        }).catch(() => null);
-      }
-
-    } else {
-      // ── Standard sales AI voice (existing behavior) ───────────────────────
-      const result = await generateAIVoiceResponse({
-        userSpeech:  speechResult || 'Hello',
-        agentName:   agent.name,
-        agentRole:   agent.role,
-        companyName: agent.companyName ?? '',
-        leadName:    conversation.lead?.firstName ?? undefined,
-        callHistory,
-      });
-
-      aiText       = result.aiText;
-      twiml        = result.twiml;
-      shouldHangup = result.shouldHangup;
-    }
-
-    // ── Save AI response ────────────────────────────────────────────────────
+    // Save AI response
     await prisma.message.create({
       data: {
         conversationId: conversation.id,
@@ -156,7 +65,21 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // ── Close conversation if hanging up ────────────────────────────────────
+    // Log activity
+    if (lead?.id && speechResult) {
+      await prisma.activity.create({
+        data: {
+          leadId:      lead.id,
+          type:        'hospital_voice',
+          title:       'Hospital AI Voice Response',
+          description: `Patient: "${speechResult.slice(0, 200)}"`,
+          actorType:   'agent',
+          actorId:     conversation.agentId,
+          metadata:    { aiResponse: aiText.slice(0, 300), callSid },
+        },
+      }).catch(() => null);
+    }
+
     if (shouldHangup) {
       await prisma.conversation.update({
         where: { id: conversation.id },
@@ -164,22 +87,21 @@ export async function POST(request: NextRequest) {
       }).catch(() => null);
     }
 
-    return xmlResponse(twiml);
+    return xml(twiml);
 
   } catch (error) {
-    console.error('[Gather] Error:', error);
-    return xmlResponse(`<?xml version="1.0" encoding="UTF-8"?>
+    console.error('[Gather] Fatal:', error);
+    return xml(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="Polly.Aditi" language="en-IN">I'm having a little trouble right now. Our team will call you back shortly. Thank you for your patience. Goodbye!</Say>
+  <Say voice="Polly.Aditi" language="en-IN">I am sorry for the trouble. Our team will call you back. Goodbye!</Say>
   <Hangup/>
 </Response>`);
   }
 }
 
-function xmlResponse(xml: string) {
-  return new NextResponse(xml, { headers: { 'Content-Type': 'text/xml' } });
+function xml(c: string) {
+  return new NextResponse(c, { headers: { 'Content-Type': 'text/xml' } });
 }
-
 
 // import { NextRequest, NextResponse } from 'next/server';
 // import { prisma } from '@/lib/prisma';

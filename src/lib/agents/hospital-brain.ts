@@ -2,348 +2,314 @@ import Groq from 'groq-sdk';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// ── Emergency keywords ────────────────────────────────────────────────────────
+// ── Emergency keywords (English + Hindi + Kannada) ────────────────────────────
 const EMERGENCY_KEYWORDS = [
-  'chest pain', 'heart attack', 'breathing difficulty', 'can\'t breathe',
-  'unconscious', 'stroke', 'heavy bleeding', 'not breathing', 'collapsed',
-  'seizure', 'overdose', 'severe pain', 'choking', 'fainted', 'blackout',
-  // Hindi/Indian language variants
-  'seene mein dard', 'saans nahi', 'behosh', 'bahut dard',
+    'chest pain', 'heart attack', 'cant breathe', "can't breathe", 'not breathing',
+    'breathing difficulty', 'unconscious', 'stroke', 'heavy bleeding', 'collapsed',
+    'seizure', 'overdose', 'choking', 'fainted', 'blackout', 'cardiac arrest',
+    'no pulse', 'severe bleeding', 'head injury', 'not responding',
+    'seene mein dard', 'saans nahi aa raha', 'behosh ho gaya', 'bahut zyada khoon',
+    'nenu breathe chesuko lekapoyatam ledu', 'channagilla', 'ulbana',
 ];
 
-// ── Agent type detection ──────────────────────────────────────────────────────
-function detectAgentType(speech: string): string {
-  const s = speech.toLowerCase();
+// ── Detect which of the 6 sub-agents should respond ──────────────────────────
+function detectSubAgent(speech: string, history: { role: string; content: string }[]): string {
+    const s = speech.toLowerCase();
 
-  if (/appoint|book|schedul|cancel|reschedul|slot|timing|date|time|doctor.*available|visit|opd/.test(s))
+    // Appointment / scheduling
+    if (/appoint|book|schedul|cancel|reschedul|slot|timing|available|visit|opd|check.?up|consult|see.*doctor|meet.*doctor/.test(s))
+        return 'RECEPTIONIST';
+
+    // Symptoms / triage
+    if (/symptom|pain|fever|cough|cold|vomit|nausea|diarrhea|dizzy|headache|bleed|swell|rash|hurt|sick|unwell|not feel|weak|tired|burning|itching|infection|wound|injury|problem|trouble/.test(s))
+        return 'TRIAGE';
+
+    // Medicines
+    if (/medicine|tablet|capsule|drug|dose|dosage|side effect|prescription|paracetamol|aspirin|antibiotic|strip|syrup|injection|ointment|cream|what.*tablet|which.*medicine/.test(s))
+        return 'PHARMACIST';
+
+    // Doctor / department suggestion
+    if (/which doctor|which department|what specialist|cardiolog|dermatolog|orthoped|gynecolog|neurolog|pediatric|general physician|ent|ophthalmol|urolog|gastro|pulmonolog|oncolog|psychiatr|endocrin|rheumatolog/.test(s))
+        return 'CONSULTANT';
+
+    // Language
+    if (/hindi mein|kannada|tamil|telugu|malayalam|marathi|bengali|punjabi|gujarati|speak.*language|translate|respond.*hindi|mujhe hindi/.test(s))
+        return 'INTERPRETER';
+
+    // Notes / documentation
+    if (/note|summary|document|record|history|report|write down|keep.*record/.test(s))
+        return 'SCRIBE';
+
+    // If conversation already started and context is medical, default to triage
+    if (history.length > 2) return 'TRIAGE';
+
     return 'RECEPTIONIST';
-
-  if (/symptom|pain|fever|cough|cold|vomit|diarrhea|dizzy|headache|bleeding|swelling|rash|hurt|sick|unwell|not feeling|problem with|trouble|issue/.test(s))
-    return 'TRIAGE';
-
-  if (/medicine|tablet|capsule|drug|dose|dosage|side effect|prescription|pharmacy|tablet.*name|what is.*medicine/.test(s))
-    return 'PHARMACIST';
-
-  if (/doctor|specialist|department|which doctor|which department|cardiolog|dermatolog|orthoped|gynecolog|neurolog|pediatric|general physician|ent|ophthalmol/.test(s))
-    return 'CONSULTANT';
-
-  if (/translate|language|hindi|kannada|tamil|telugu|malayalam|marathi|bengali|gujarati|speak in|tell me in/.test(s))
-    return 'INTERPRETER';
-
-  if (/summary|note|record|document|history|report|diagnos/.test(s))
-    return 'SCRIBE';
-
-  return 'RECEPTIONIST'; // default
 }
 
-// ── System prompts per agent ──────────────────────────────────────────────────
-function getSystemPrompt(
-  agentType: string,
-  agentName: string,
-  hospitalName: string,
-  patientName: string,
-  language: string,
+// ── Master system prompt — all 7 agents built in ─────────────────────────────
+function buildMasterPrompt(
+    agentName: string,
+    hospitalName: string,
+    patientName: string,
+    subAgent: string,
+    language: string,
 ): string {
-  const langNote = language && language !== 'EN'
-    ? `\n\nIMPORTANT: The patient prefers ${language}. Respond naturally in ${language} where possible, mixing with English only when needed for medical terms.`
-    : '';
+    const name = patientName ? patientName : 'the patient';
+    const hosp = hospitalName || 'City Hospital';
+    const langLine = (language && language !== 'EN')
+        ? `\nIMPORTANT: Patient prefers ${language}. Mix ${language} with English naturally for medical terms.`
+        : '';
 
-  const base = `You are ${agentName}, an AI healthcare assistant at ${hospitalName || 'our hospital'}.
-You are speaking with ${patientName || 'a patient'} on a phone call.
-Be warm, caring, and conversational — like a real hospital staff member.
-Speak in short, clear sentences suitable for a phone call.
-Never diagnose. Never prescribe. Always recommend consulting a doctor.${langNote}`;
+    const base = `You are ${agentName}, an AI healthcare assistant at ${hosp}.
+You are on a PHONE CALL with ${name}.
+Speak exactly like a warm, caring Indian hospital staff member would on a phone call.
+Keep EVERY response to 1-2 short sentences only — this is a voice call.
+Never use bullet points, lists, asterisks, or any formatting.
+Never diagnose any condition. Never prescribe medicines.
+Always recommend consulting a doctor for medical decisions.
+Be conversational, empathetic, and professional.${langLine}`;
 
-  switch (agentType) {
-    case 'RECEPTIONIST':
-      return `${base}
+    switch (subAgent) {
 
-You are the AI Receptionist. Your job is to help patients book, reschedule, or cancel appointments.
+        case 'RECEPTIONIST':
+            return `${base}
 
-Flow — follow this naturally in conversation:
-1. Greet and ask how you can help
-2. Ask for patient name (if not known)
-3. Ask which department or doctor they need
-4. Ask preferred date and time
-5. Confirm the appointment details
-6. End warmly: "Your appointment has been noted. Our team will confirm it shortly."
+You are the AI Receptionist at ${hosp}.
+Your only job is to help patients book, reschedule, or cancel appointments.
 
-Keep responses SHORT — 1-2 sentences at a time on a phone call.
-If patient asks something medical, say "For that, let me connect you with our medical team, but first let me take care of your appointment."`;
+Follow this natural conversation flow:
+- First ask: "May I know your name please?"
+- Then: "Which department or which doctor would you like to see?"
+- Then: "What date and time would be convenient for you?"
+- Then confirm: "I have noted your appointment for [department] on [date] at [time]. Our team will confirm this shortly."
+- Close warmly: "Is there anything else I can help you with today?"
 
-    case 'TRIAGE':
-      return `${base}
+If patient mentions symptoms, say: "I understand. Let me first note your appointment, and the doctor will assess your condition when you visit."
+Never diagnose. Stay focused on booking.`;
 
-You are the AI Triage Nurse. Your job is to understand symptoms and assess urgency.
+        case 'TRIAGE':
+            return `${base}
 
-Ask these naturally one at a time:
-- What symptoms are you experiencing?
-- How long have you had these symptoms?
-- How severe is the discomfort — mild, moderate, or severe?
-- Do you have any existing conditions?
+You are the AI Triage Nurse at ${hosp}.
+Your job is to understand the patient's symptoms and guide them to the right care.
 
-Based on answers:
-- SEVERE/EMERGENCY: "Please go to the emergency room immediately or call 108."
-- MODERATE: "I'd recommend seeing a doctor today. I can book an appointment."  
-- MILD: "This sounds manageable. Let me book you an appointment with the right specialist."
+Ask these questions one at a time naturally:
+1. "Can you tell me what symptoms you are experiencing?"
+2. "How long have you been feeling this way?"
+3. "Would you say the discomfort is mild, moderate, or severe?"
+4. "Do you have any existing health conditions like diabetes or blood pressure?"
 
-Never diagnose. Always end with a recommendation to see a doctor.
-Keep each response to 1-2 sentences.`;
+After gathering symptoms, respond with:
+- If urgent: "Based on what you've told me, I'd recommend you visit the hospital today. Shall I help you book an urgent appointment?"
+- If moderate: "This sounds like something a doctor should check. I can book an appointment for you — which day works best?"
+- If mild: "I understand. A doctor can help you feel better. Would you like me to book a convenient appointment?"
 
-    case 'PHARMACIST':
-      return `${base}
+Never diagnose. Always end by offering to connect with a doctor.`;
 
-You are the AI Pharmacist. Provide general medicine information only.
+        case 'PHARMACIST':
+            return `${base}
 
-Rules:
-- Explain what a medicine is generally used for
-- Mention common general side effects if asked
-- ALWAYS say: "Please take this medicine only as prescribed by your doctor."
-- NEVER prescribe medicines or dosages
-- If asked about drug interactions: "Please consult your doctor or pharmacist in person for this."
+You are the AI Pharmacist at ${hosp}.
+You provide general medicine information only.
 
-Keep responses short and clear. One topic at a time.`;
+Rules you must follow every time:
+- Explain what a medicine is generally used for in simple words
+- Mention only very common, general side effects if asked
+- ALWAYS add: "Please only take this as prescribed by your doctor."
+- NEVER suggest a dose or quantity
+- NEVER say "take this medicine for your condition"
+- For interactions: "Please speak with our pharmacist in person for that."
 
-    case 'CONSULTANT':
-      return `${base}
+Be simple, clear, and reassuring. One topic per response.`;
 
-You are the AI Medical Consultant. Help patients find the right department or doctor type.
+        case 'CONSULTANT':
+            return `${base}
 
-Examples:
-- Heart issues → Cardiologist
-- Skin problems → Dermatologist  
-- Bone/joint pain → Orthopedic surgeon
-- Children → Pediatrician
-- Eye problems → Ophthalmologist
-- Ear/Nose/Throat → ENT specialist
+You are the AI Medical Consultant at ${hosp}.
+Your job is to help patients find the right department or doctor.
+
+Department guide:
+- Heart / chest issues → Cardiology
+- Skin / hair / nail → Dermatology
+- Bone / joint / back → Orthopaedics
+- Children under 15 → Paediatrics
+- Eyes → Ophthalmology
+- Ear / nose / throat → ENT
+- Stomach / digestion → Gastroenterology
+- Kidney → Nephrology / Urology
+- Brain / nerves → Neurology
+- Women's health → Gynaecology
+- Lung / breathing → Pulmonology
 - General illness → General Physician
-- Women's health → Gynecologist
-- Brain/nerves → Neurologist
+- Mental health → Psychiatry
 
-After suggesting the department, offer: "Would you like me to book an appointment with that department?"
-Never diagnose. Keep it simple and helpful.`;
+After suggesting: "Would you like me to book an appointment with that department today?"
+Never diagnose. Keep explanations simple and reassuring.`;
 
-    case 'INTERPRETER':
-      return `${base}
+        case 'INTERPRETER':
+            return `${base}
 
-You are the AI Interpreter. Help patients in their preferred language.
-Detect the language from what the patient says and respond in that language.
-Maintain medical accuracy while translating.
-Keep the tone warm and professional.
-If you're not sure of a medical term in their language, use the English term clearly.`;
+You are the AI Interpreter at ${hosp}.
+Detect the language the patient is using and respond naturally in that same language.
+Mix English only for medical terms that have no simple translation.
+Keep the same warm, professional hospital tone.
+Maintain complete medical accuracy while speaking their language.`;
 
-    case 'SCRIBE':
-      return `${base}
+        case 'SCRIBE':
+            return `${base}
 
-You are the AI Medical Scribe. Help document patient information in a structured way.
-Ask for: patient name, age, gender, main symptoms, duration, and any existing conditions.
-Summarize clearly and professionally.
-Tell the patient: "I've noted your details. Our medical team will review this before your appointment."`;
+You are the AI Medical Scribe at ${hosp}.
+Help capture the patient's information clearly.
 
-    default:
-      return base;
-  }
+Ask these one at a time:
+- "May I have your full name?"
+- "What is your age?"
+- "What are your main symptoms today?"
+- "How long have you had these symptoms?"
+- "Do you have any existing medical conditions?"
+
+After collecting: "Thank you. I have noted your details. Our medical team will review this before your appointment."`;
+
+        default:
+            return `${base}
+
+You are a helpful AI health assistant at ${hosp}.
+Greet the patient warmly and ask: "How may I assist you today?"
+Based on their response, help them with appointments, symptoms, medicines, or finding the right doctor.
+Keep responses short and conversational for a phone call.`;
+    }
 }
 
-// ── Extract appointment data from conversation ────────────────────────────────
-function extractAppointmentData(messages: { role: string; content: string }[]): Record<string, string> {
-  const fullText = messages.map(m => m.content).join(' ').toLowerCase();
-  const data: Record<string, string> = {};
-
-  // Extract department mentions
-  const depts = ['cardiology', 'dermatology', 'orthopedic', 'pediatric', 'general physician', 'gynecology', 'neurology', 'ent', 'ophthalmology', 'emergency'];
-  for (const dept of depts) {
-    if (fullText.includes(dept)) { data.department = dept; break; }
-  }
-
-  // Extract time mentions
-  const timeMatch = fullText.match(/(\d{1,2})\s*(am|pm|o'clock)/);
-  if (timeMatch) data.preferredTime = timeMatch[0];
-
-  // Extract date mentions
-  const dateMatch = fullText.match(/(monday|tuesday|wednesday|thursday|friday|saturday|sunday|tomorrow|today|\d{1,2}(st|nd|rd|th)?)/);
-  if (dateMatch) data.preferredDate = dateMatch[0];
-
-  return data;
-}
-
-// ── Extract triage data ───────────────────────────────────────────────────────
-function extractTriageData(messages: { role: string; content: string }[]): Record<string, string> {
-  const fullText = messages.map(m => m.content).join(' ').toLowerCase();
-  const data: Record<string, string> = {};
-
-  const severityMatch = fullText.match(/\b(mild|moderate|severe|critical|extreme|bad|little|slight)\b/);
-  if (severityMatch) data.severity = severityMatch[0];
-
-  const durationMatch = fullText.match(/(\d+)\s*(day|hour|week|month)/);
-  if (durationMatch) data.duration = durationMatch[0];
-
-  return data;
-}
-
-// ── Main hospital brain function ──────────────────────────────────────────────
-export async function generateHospitalResponse(params: {
-  userSpeech:   string;
-  agentName:    string;
-  hospitalName: string;
-  patientName?: string;
-  language:     string;
-  callHistory:  { role: string; content: string }[];
-  callSid:      string;
+// ── Main hospital voice response ──────────────────────────────────────────────
+export async function generateHospitalVoiceResponse(params: {
+    userSpeech: string;
+    agentName: string;
+    hospitalName: string;
+    patientName?: string;
+    language: string;
+    callHistory: { role: string; content: string }[];
 }): Promise<{
-  aiText:        string;
-  twiml:         string;
-  shouldHangup:  boolean;
-  agentType:     string;
-  isEmergency:   boolean;
-  appointmentData?: Record<string, string>;
-  triageData?:      Record<string, string>;
-  patientNotes?:    string;
+    aiText: string;
+    twiml: string;
+    shouldHangup: boolean;
+    subAgent: string;
+    isEmergency: boolean;
 }> {
-  const { userSpeech, agentName, hospitalName, patientName, language, callHistory } = params;
+    const { userSpeech, agentName, hospitalName, patientName, language, callHistory } = params;
+    const speechLower = userSpeech.toLowerCase();
 
-  // ── Emergency detection — check before anything else ─────────────────────
-  const speechLower = userSpeech.toLowerCase();
-  const isEmergency = EMERGENCY_KEYWORDS.some(kw => speechLower.includes(kw));
+    // ── 1. Emergency check — always first ──────────────────────────────────────
+    const isEmergency = EMERGENCY_KEYWORDS.some(kw => speechLower.includes(kw));
+    if (isEmergency) {
+        const emergencyText = `This sounds very serious. Please call 108 immediately or go to the nearest emergency room right now. Please call 108 right away. Do not wait.`;
+        return {
+            aiText: emergencyText,
+            twiml: makeTwiml(emergencyText, true),
+            shouldHangup: true,
+            subAgent: 'EMERGENCY',
+            isEmergency: true,
+        };
+    }
 
-  if (isEmergency) {
-    const emergencyText = `This sounds like a medical emergency. Please call 108 immediately or go to the nearest emergency room right now. Do not wait. Please call 108 immediately.`;
-    const twiml = buildTwiml(emergencyText, true);
-    return { aiText: emergencyText, twiml, shouldHangup: true, agentType: 'EMERGENCY', isEmergency: true };
-  }
+    // ── 2. Detect sub-agent ────────────────────────────────────────────────────
+    const subAgent = detectSubAgent(userSpeech, callHistory);
+    const systemPrompt = buildMasterPrompt(agentName, hospitalName, patientName ?? '', subAgent, language);
 
-  // ── Detect which agent to use ─────────────────────────────────────────────
-  const agentType = detectAgentType(userSpeech);
-  const systemPrompt = getSystemPrompt(agentType, agentName, hospitalName, patientName ?? 'the patient', language);
+    // ── 3. Build Groq messages ─────────────────────────────────────────────────
+    const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
+        { role: 'system', content: systemPrompt },
+        ...callHistory.slice(-10).map(m => ({
+            role: (m.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+            content: m.content,
+        })),
+        { role: 'user', content: userSpeech },
+    ];
 
-  // ── Build messages for Groq ───────────────────────────────────────────────
-  const messages: { role: 'user' | 'assistant' | 'system'; content: string }[] = [
-    { role: 'system', content: systemPrompt },
-    ...callHistory.slice(-8).map(m => ({  // Keep last 8 for context
-      role:    (m.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
-      content: m.content,
-    })),
-    { role: 'user', content: userSpeech },
-  ];
+    // ── 4. Call Groq ───────────────────────────────────────────────────────────
+    let aiText = '';
+    try {
+        const res = await groq.chat.completions.create({
+            model: 'llama-3.3-70b-versatile',
+            messages,
+            max_tokens: 150,
+            temperature: 0.65,
+        });
+        aiText = res.choices[0]?.message?.content?.trim() ?? '';
+    } catch (err) {
+        console.error('[Hospital Brain] Groq error:', err);
+        aiText = `I'm sorry, I'm having a little difficulty. Please hold on, and one of our staff will assist you right away.`;
+    }
 
-  // ── Call Groq ─────────────────────────────────────────────────────────────
-  let aiText = '';
-  try {
-    const response = await groq.chat.completions.create({
-      model:       'llama-3.3-70b-versatile',
-      messages,
-      max_tokens:  120,      // Short for phone calls
-      temperature: 0.7,
-    });
-    aiText = response.choices[0]?.message?.content?.trim() ?? '';
-  } catch (err) {
-    console.error('[Hospital Brain] Groq error:', err);
-    aiText = `I'm sorry, I'm having a little trouble right now. Please hold on, and one of our staff will assist you shortly.`;
-  }
+    if (!aiText) {
+        aiText = `I didn't quite catch that. Could you please say that again?`;
+    }
 
-  // Fallback
-  if (!aiText) {
-    aiText = `I'm sorry, could you please repeat that? I want to make sure I help you correctly.`;
-  }
+    // ── 5. Detect call end ─────────────────────────────────────────────────────
+    const endPhrases = ['bye', 'goodbye', 'thank you bye', "that's all", 'nothing else', 'ok bye', 'thanks bye', 'no thank you'];
+    const shouldHangup = callHistory.length > 2 && endPhrases.some(p => speechLower.includes(p));
 
-  // ── Detect hangup intent ──────────────────────────────────────────────────
-  const hangupPhrases = ['goodbye', 'bye', 'thank you goodbye', 'that\'s all', 'nothing else', 'all done', 'thanks bye'];
-  const shouldHangup = hangupPhrases.some(p => speechLower.includes(p)) && callHistory.length > 2;
-
-  // ── Build TwiML ───────────────────────────────────────────────────────────
-  const twiml = buildTwiml(aiText, shouldHangup);
-
-  // ── Extract structured data for DB storage ────────────────────────────────
-  const allMessages = [...callHistory, { role: 'user', content: userSpeech }, { role: 'assistant', content: aiText }];
-  const appointmentData = agentType === 'RECEPTIONIST' ? extractAppointmentData(allMessages) : undefined;
-  const triageData      = agentType === 'TRIAGE'       ? extractTriageData(allMessages)       : undefined;
-  const patientNotes    = agentType === 'SCRIBE'        ? aiText                               : undefined;
-
-  return {
-    aiText, twiml, shouldHangup,
-    agentType, isEmergency: false,
-    appointmentData, triageData, patientNotes,
-  };
+    return {
+        aiText,
+        twiml: makeTwiml(aiText, shouldHangup),
+        shouldHangup,
+        subAgent,
+        isEmergency: false,
+    };
 }
 
-// ── Build TwiML response ──────────────────────────────────────────────────────
-function buildTwiml(text: string, hangup: boolean): string {
-  // Clean text for TwiML — remove markdown, special chars
-  const clean = text
-    .replace(/[*_`#]/g, '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .trim();
+// ── Build hospital greeting TwiML ─────────────────────────────────────────────
+export function buildHospitalGreeting(agentName: string, hospitalName: string, patientName?: string): string {
+    const hosp = hospitalName || 'the hospital';
+    const greeting = patientName
+        ? `Hello ${patientName}! This is ${agentName} calling from ${hosp}. How are you feeling today? How can I help you?`
+        : `Thank you for calling ${hosp}. This is ${agentName}, your AI health assistant. How may I help you today?`;
 
-  if (hangup) {
     return `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say voice="Polly.Aditi" language="en-IN">${xmlEscape(greeting)}</Say>
+  <Gather input="speech" action="/api/twilio/gather" method="POST"
+    speechTimeout="2" speechModel="phone_call" enhanced="true" timeout="10">
+    <Say voice="Polly.Aditi" language="en-IN"> </Say>
+  </Gather>
+  <Say voice="Polly.Aditi" language="en-IN">I'm here to help you. Please go ahead.</Say>
+  <Gather input="speech" action="/api/twilio/gather" method="POST"
+    speechTimeout="2" timeout="10">
+    <Say voice="Polly.Aditi" language="en-IN"> </Say>
+  </Gather>
+  <Hangup/>
+</Response>`;
+}
+
+// ── TwiML builder ─────────────────────────────────────────────────────────────
+function makeTwiml(text: string, hangup: boolean): string {
+    const clean = xmlEscape(text.replace(/[*_`#\-•]/g, '').replace(/\n+/g, ' ').trim());
+
+    if (hangup) {
+        return `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Say voice="Polly.Aditi" language="en-IN">${clean}</Say>
   <Pause length="1"/>
-  <Say voice="Polly.Aditi" language="en-IN">Thank you for calling. Take care and get well soon. Goodbye!</Say>
+  <Say voice="Polly.Aditi" language="en-IN">Thank you for calling. Please take care and stay safe. Goodbye!</Say>
   <Hangup/>
 </Response>`;
-  }
+    }
 
-  return `<?xml version="1.0" encoding="UTF-8"?>
+    return `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Say voice="Polly.Aditi" language="en-IN">${clean}</Say>
-  <Gather
-    input="speech"
-    action="/api/twilio/gather"
-    method="POST"
-    speechTimeout="2"
-    speechModel="phone_call"
-    enhanced="true"
-    timeout="8"
-  >
+  <Gather input="speech" action="/api/twilio/gather" method="POST"
+    speechTimeout="2" speechModel="phone_call" enhanced="true" timeout="8">
     <Say voice="Polly.Aditi" language="en-IN"> </Say>
   </Gather>
   <Say voice="Polly.Aditi" language="en-IN">I didn't catch that. Could you please repeat?</Say>
-  <Gather
-    input="speech"
-    action="/api/twilio/gather"
-    method="POST"
-    speechTimeout="2"
-    timeout="8"
-  >
+  <Gather input="speech" action="/api/twilio/gather" method="POST"
+    speechTimeout="2" timeout="8">
     <Say voice="Polly.Aditi" language="en-IN"> </Say>
   </Gather>
   <Hangup/>
 </Response>`;
 }
 
-// ── Hospital greeting TwiML (for inbound/outbound call start) ─────────────────
-export function buildHospitalGreeting(agentName: string, hospitalName: string, patientName?: string): string {
-  const greeting = patientName
-    ? `Hello ${patientName}, this is ${agentName} calling from ${hospitalName || 'the hospital'}. How are you doing today? How can I help you?`
-    : `Thank you for calling ${hospitalName || 'the hospital'}. This is ${agentName}, your AI health assistant. How can I help you today?`;
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say voice="Polly.Aditi" language="en-IN">${greeting}</Say>
-  <Gather
-    input="speech"
-    action="/api/twilio/gather"
-    method="POST"
-    speechTimeout="2"
-    speechModel="phone_call"
-    enhanced="true"
-    timeout="10"
-  >
-    <Say voice="Polly.Aditi" language="en-IN"> </Say>
-  </Gather>
-  <Say voice="Polly.Aditi" language="en-IN">I'm here to help. Please go ahead and tell me how I can assist you.</Say>
-  <Gather
-    input="speech"
-    action="/api/twilio/gather"
-    method="POST"
-    speechTimeout="2"
-    timeout="10"
-  >
-    <Say voice="Polly.Aditi" language="en-IN"> </Say>
-  </Gather>
-  <Hangup/>
-</Response>`;
+function xmlEscape(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
