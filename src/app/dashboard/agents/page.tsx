@@ -219,7 +219,7 @@ function AgentModal({ agent, onClose, onDelete }: { agent: Agent; onClose: () =>
           {[
             { label: 'Status', value: agent.isActive ? '🟢 Active' : '⚪ Paused' },
             { label: 'Default Agent', value: agent.isDefault ? 'Yes' : 'No' },
-            { label: 'Hospital', value: (agent as any).companyName ?? 'Not set' },
+            { label: 'Hospital', value: (agent as any).companyName ?? 'Lakshmi Hospitals' },
             { label: 'Conversations', value: String(agent.conversationCount ?? 0) },
             { label: 'Agent ID', value: agent.id.slice(0, 20) + '...' },
             { label: 'Created', value: new Date(agent.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) },
