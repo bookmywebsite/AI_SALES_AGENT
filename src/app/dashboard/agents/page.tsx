@@ -9,7 +9,7 @@ interface Agent {
   conversationCount?: number; createdAt: string;
 }
 
-const FREE_AGENT_LIMIT = 1;
+const FREE_AGENT_LIMIT = 3;
 
 const AGENT_TYPES = [
   'All Purpose Agent - Call to Action',
