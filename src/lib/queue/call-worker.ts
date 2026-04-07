@@ -28,8 +28,8 @@ export function createCallWorker() {
       // Check calling hours using hardcoded defaults (9am-9pm IST)
       // Will use org settings after schema migration
       const hour = new Date().getHours();
-      const START_HOUR = 9;
-      const END_HOUR   = 21;
+      const START_HOUR = 0;
+      const END_HOUR   = 24;
 
       if (hour < START_HOUR || hour >= END_HOUR) {
         const next = new Date();
