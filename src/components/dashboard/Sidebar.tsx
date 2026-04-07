@@ -73,32 +73,7 @@ export function Sidebar() {
             </Link>
           );
         })}
-      </nav>
-
-      {/* Sign out */}
-      <div style={{ padding: '12px 10px', borderTop: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
-        <button
-          onClick={handleSignOut}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '10px',
-            width: '100%', padding: '9px 12px', borderRadius: '10px',
-            background: 'transparent', border: 'none', cursor: 'pointer',
-            fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.35)',
-            transition: 'all 0.15s',
-          }}
-          onMouseOver={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.color = '#f87171';
-            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.08)';
-          }}
-          onMouseOut={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)';
-            (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-          }}
-        >
-          <LogOut size={15} style={{ flexShrink: 0 }} />
-          Sign Out
-        </button>
-      </div>
+      </nav>      
     </aside>
   );
 }
